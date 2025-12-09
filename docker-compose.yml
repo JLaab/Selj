@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: selj-db
+    environment:
+      POSTGRES_USER: selj
+      POSTGRES_PASSWORD: selj
+      POSTGRES_DB: selj
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  typesense:
+    image: typesense/typesense:0.25.2
+    container_name: selj-typesense
+    environment:
+      TYPESENSE_API_KEY: dev-typesense-key
+      TYPESENSE_DATA_DIR: /data
+      TYPESENSE_ENABLE_CORS: "true"
+    command:
+      [
+        "--api-key=${TYPESENSE_API_KEY}",
+        "--data-dir=/data",
+        "--listen-port=8108",
+        "--enable-cors",
+      ]
+    ports:
+      - "8108:8108"
+    volumes:
+      - typesense-data:/data
+    depends_on:
+      - db
+
+volumes:
+  db-data:
+  typesense-data:

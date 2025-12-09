@@ -1,0 +1,1066 @@
+.page {
+  min-height: 100vh;
+  padding: 32px 22px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+}
+
+.dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 0 0 0 6px var(--color-glow);
+}
+
+.searchShell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 8px 14px;
+  max-width: 720px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+}
+
+.searchInput {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  color: var(--color-text);
+  outline: none;
+}
+
+.categorySelect {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+  border-radius: 12px;
+  padding: 8px 10px;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.searchIcon {
+  font-size: 18px;
+}
+
+.topActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  font-size: 12px;
+  border: 1px solid var(--color-border);
+}
+
+.linkButton {
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.cardGrid,
+.heroCopy {
+  display: none;
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  padding: 18px 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+}
+
+.pickCard {
+  background: linear-gradient(135deg, var(--color-surface), var(--color-surface-muted));
+}
+
+.createCard {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.overtitle {
+  color: var(--color-text-dim);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.body {
+  color: var(--color-text-dim);
+  font-size: 15px;
+  line-height: 1.5;
+  margin-top: 6px;
+}
+
+.heading1,
+.heading2,
+.heading3 {
+  color: var(--color-text);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.heading1 {
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.heading2 {
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.heading3 {
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.primaryButton {
+  background: var(--color-accent);
+  color: var(--color-surface);
+  border: none;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.primaryButton:hover {
+  background: var(--color-accent-strong);
+}
+
+.primaryButton:active {
+  transform: translateY(1px);
+}
+
+.formGrid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 1fr;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field label {
+  font-size: 13px;
+  color: var(--color-text-dim);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.field input {
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  color: var(--color-text);
+  font-size: 16px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.03);
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-glow);
+  transform: translateY(1px);
+}
+
+.inlineFields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.tokenRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.token,
+.tokenMuted {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.token {
+  background: var(--color-accent);
+  color: var(--color-surface);
+  border-color: var(--color-accent-strong);
+}
+
+.hintRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  color: var(--color-text-dim);
+  font-size: 14px;
+}
+
+.smallDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+.field label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.switchRow {
+  display: inline-flex;
+  background: var(--color-surface);
+  border-radius: 12px;
+  padding: 4px;
+  border: 1px solid var(--color-border);
+  gap: 4px;
+}
+
+.segment,
+.segmentActive {
+  border: none;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: var(--color-text);
+}
+
+.segmentActive {
+  background: var(--color-accent);
+  color: var(--color-surface);
+}
+
+.countyGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.countyBtn,
+.countyGhost {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  text-align: left;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.countyBtn:hover {
+  border-color: var(--color-accent);
+}
+
+.countyGhost {
+  background: transparent;
+  color: var(--color-text-dim);
+}
+
+.searchRow {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1.5fr repeat(3, minmax(110px, 0.8fr));
+}
+
+.searchRow input {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 15px;
+  color: var(--color-text);
+}
+
+.filterBtn {
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: 12px;
+  padding: 12px;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.micro {
+  color: var(--color-text-dim);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.textarea {
+  min-height: 110px;
+  resize: vertical;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  color: var(--color-text);
+  font-size: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.03);
+}
+
+.listSection {
+  display: none;
+}
+
+:global(.theme-toggle) {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.uploadZone {
+  border: 1px dashed var(--color-border);
+  border-radius: 12px;
+  padding: 14px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: inset 0 0 0 1px var(--color-border);
+}
+
+.uploadActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.uploadButton {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface-muted);
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.mobileOnly {
+  display: none;
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-surface);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+}
+
+.previewCard {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.previewImage {
+  width: 120px;
+  height: 90px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #dfe7e6, #c5d9d6);
+  border: 1px solid var(--color-border);
+}
+
+.previewContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.countyCard {
+  height: 100%;
+}
+
+.countyList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.countyRow {
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  cursor: pointer;
+  font-weight: 600;
+  transition: border-color 0.15s ease, transform 0.05s ease;
+}
+
+.countyRow:hover {
+  border-color: var(--color-accent);
+}
+
+.countyRow:active {
+  transform: translateY(1px);
+}
+
+.listView {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.listHeaderRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.listActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.viewToggle {
+  display: inline-flex;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 4px;
+  background: var(--color-surface-muted);
+  gap: 4px;
+}
+
+.listGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.listCard {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.03);
+}
+
+.listThumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: var(--color-surface-muted);
+}
+
+.listThumb img {
+  object-fit: cover;
+}
+
+.listCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 12px 14px;
+}
+
+.listTitle {
+  font-weight: 700;
+  color: var(--color-text);
+  font-size: 16px;
+}
+
+.listPrice {
+  font-weight: 700;
+  color: var(--color-accent-strong);
+  font-size: 15px;
+}
+
+.listMeta {
+  color: var(--color-text-dim);
+  font-size: 13px;
+}
+
+.listMetaMuted {
+  color: var(--color-text-dim);
+  font-size: 12px;
+}
+
+.listHeart {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.waitButton {
+  margin-top: 4px;
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--color-text);
+  text-align: center;
+  min-width: 38px;
+  font-size: 22px;
+}
+
+.filterBar {
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 12px;
+  background: var(--color-surface-muted);
+}
+
+.filterChips {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.filterField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filterField label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-dim);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.filterField select,
+.filterField input {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px 10px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 16px;
+}
+
+.rangeFields {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 6px;
+  align-items: center;
+  color: var(--color-text-dim);
+}
+
+.chipRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.chipButton {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 10px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.listRows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.listRow {
+  display: grid;
+  grid-template-columns: 140px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.02);
+  position: relative;
+}
+
+.listRowThumb {
+  position: relative;
+  width: 140px;
+  height: 100px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--color-surface-muted);
+}
+
+.listRowThumb img {
+  object-fit: cover;
+}
+
+.listRowBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.listRow .waitButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  margin-top: 0;
+}
+
+.waitButton {
+  margin-top: 4px;
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--color-text);
+  text-align: center;
+  min-width: 38px;
+  font-size: 22px;
+}
+
+.waitButtonActive {
+  color: #e11d48;
+}
+
+.filterBar {
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 12px;
+  background: var(--color-surface-muted);
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  z-index: 50;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.modalCard {
+  max-width: 960px;
+  width: min(960px, calc(100vw - 20px));
+  max-height: 92vh;
+  background: var(--color-surface);
+  border-radius: 18px;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.modalHeaderActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modalClose {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+  border-radius: 12px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.favButton {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 12px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.favButtonActive {
+  border-color: #e11d48;
+  color: #e11d48;
+  background: #fff0f5;
+}
+
+.modalBody {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.modalThumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+}
+
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modalActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.replyPanel {
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.replyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.replyBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.replyMessage {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.replyMessage textarea {
+  min-height: 120px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 10px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 16px;
+}
+
+.replyActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.replyActions .primaryButton {
+  width: auto;
+  padding: 10px 14px;
+}
+
+.replyPreview {
+  border: 1px dashed var(--color-border);
+  border-radius: 12px;
+  padding: 10px;
+  background: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sellerStrip {
+  background: var(--color-surface-muted);
+  border-top: 1px solid var(--color-border);
+  border-radius: 0 0 14px 14px;
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.footer {
+  margin-top: 18px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.footerGrid {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(3, 1fr);
+  gap: 18px;
+}
+
+.footerBrand {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footerMeta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: var(--color-text-dim);
+  font-size: 13px;
+}
+
+.footerCol {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footerCol h4 {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text);
+}
+
+.footerCol a {
+  color: var(--color-text-dim);
+  font-size: 14px;
+}
+
+.footerBottom {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: var(--color-text-dim);
+  font-size: 13px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border);
+}
+
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .footerGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .layout {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .card,
+  .countyCard,
+  .createCard {
+    width: 100%;
+  }
+}
+
+@media (max-width: 700px) {
+  .page {
+    padding: 20px 18px 56px;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .topActions {
+    justify-content: flex-end;
+  }
+
+  .searchShell {
+    width: 100%;
+  }
+
+  .heroCopy {
+    padding: 16px;
+  }
+
+  .layout {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .listHeaderRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .listRow {
+    grid-template-columns: 100px 1fr;
+    grid-template-areas:
+      "thumb body"
+      "thumb button";
+    gap: 8px;
+  }
+
+  .listRowThumb {
+    width: 100px;
+    height: 80px;
+    grid-area: thumb;
+  }
+
+  .listRowBody {
+    grid-area: body;
+  }
+
+  .listRow .waitButton {
+    grid-area: button;
+    justify-self: flex-start;
+  }
+
+  .favButton {
+    width: auto;
+  }
+
+  .countyCard {
+    order: 1;
+  }
+
+  .createCard {
+    order: 2;
+  }
+
+  .mobileOnly {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .footerGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .modalBody {
+    grid-template-columns: 1fr;
+  }
+
+  .replyBody {
+    flex-direction: column;
+  }
+}

@@ -1,4 +1,4 @@
-/* "use client";
+ "use client";
 
 import styles from "./page.module.css";
 import { ThemeToggle } from "../components/theme-toggle";
@@ -813,20 +813,5 @@ export default function Home() {
         </div>
       )}
     </div>
-  );
-}
-*/
-// app/page.tsx
-
-// Enkel testsida för att se om Vercel faktiskt visar vår app
-export default function HomePage() {
-  // Den här komponenten har ingen logik alls, bara text.
-  // Om den syns i produktion vet vi att routing + build fungerar
-  // och att felet ligger i tidigare kod (fetch, notFound, env-variabler, etc).
-  return (
-    <main style={{ padding: "2rem", fontFamily: "system-ui" }}>
-      <h1>Selj – test</h1>
-      <p>Om du ser den här texten i produktion funkar deploy och routing.</p>
-    </main>
   );
 }

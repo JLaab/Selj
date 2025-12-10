@@ -1,0 +1,10 @@
+{
+  "name": "@selj/api",
+  "version": "0.0.1",
+  "private": true,
+  "type": "commonjs",
+  "exports": {
+    "./mockData": "./src/mockData.ts",
+    "./mockApi": "./src/mockApi.ts"
+  }
+}

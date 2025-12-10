@@ -1,36 +1,25 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Selj web + admin (samma app, förberedd för split)
 
-## Getting Started
-
-First, run the development server:
-
+### Köra lokalt
 ```bash
+cd apps/web
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
+Öppna http://localhost:3000 för webben, http://localhost:3000/admin för admin-dashen.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Struktur
+- `src/app/page.tsx` – huvudsidan (marknadsplatsen).
+- `src/app/admin` – adminvy (pending annonser, kategorier). Byggd att kunna flyttas ut.
+- `src/lib/types.ts`, `src/lib/mockData.ts` – delad typ- och mockdata just nu. Blueprint för flytt till `packages/` när monorepo-strukturen ska aktiveras.
+- `packages/` (root) innehåller samma material för framtida split (inte direkt importerat i webben just nu).
+- `next.config.ts` har `externalDir: true` om vi börjar importera från `packages/`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### När vi vill separera admin
+1) Flytta `src/app/admin` till ett nytt Next-projekt (eller ny app i samma repo).
+2) Ta med `packages/` eller publicera dem; importera samma paket i båda appar.
+3) Peka båda appar på samma backend och införa riktig auth/rollkontroll.
+4) Uppdatera env/URL:er och deployment-targets.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Dummydata
+Mockad data och stubbar ligger i `packages/api/src`. När backend kopplas på byter vi ut anropen i admin/web till riktiga API-klienter men kan behålla typerna och UI:t oförändrat.

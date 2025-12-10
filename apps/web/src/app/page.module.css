@@ -4,6 +4,7 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  overflow-x: hidden;
 }
 
 .topbar {
@@ -69,6 +70,28 @@
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.iconButton {
+  position: relative;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+  border-radius: 12px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.unreadBadge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #e11d48;
+  color: #fff;
+  border-radius: 999px;
+  padding: 4px 7px;
+  font-size: 11px;
+  border: 2px solid var(--color-surface);
 }
 
 .badge {
@@ -535,6 +558,7 @@
   display: flex;
   flex-direction: column;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.03);
+  position: relative;
 }
 
 .listThumb {
@@ -553,6 +577,7 @@
   flex-direction: column;
   gap: 6px;
   padding: 12px 12px 14px;
+  position: relative;
 }
 
 .listTitle {
@@ -614,6 +639,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 160px;
 }
 
 .filterField label {
@@ -656,6 +682,12 @@
   cursor: pointer;
   font-weight: 600;
   color: var(--color-text);
+}
+
+.chipActive {
+  background: var(--color-accent);
+  color: var(--color-surface);
+  border-color: var(--color-accent-strong);
 }
 
 .listRows {
@@ -733,17 +765,18 @@
   inset: 0;
   background: rgba(0, 0, 0, 0.35);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 12px;
   z-index: 50;
   overflow-y: auto;
   overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 .modalCard {
-  max-width: 960px;
-  width: min(960px, calc(100vw - 20px));
+  max-width: 900px;
+  width: min(900px, 92vw);
   max-height: 92vh;
   background: var(--color-surface);
   border-radius: 18px;
@@ -754,6 +787,8 @@
   gap: 14px;
   padding: 16px;
   overflow-y: auto;
+  overflow-x: hidden;
+  touch-action: pan-y;
 }
 
 .modalHeader {
@@ -799,6 +834,167 @@
   grid-template-columns: 1.2fr 1fr;
   gap: 12px;
   align-items: start;
+  touch-action: pan-y;
+}
+
+.detailPage {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.detailHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.detailHeaderActions {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.detailLayout {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: stretch;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.detailMedia {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  touch-action: pan-y;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.detailImageWrap {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  touch-action: pan-x;
+  margin: 0 auto;
+  box-sizing: border-box;
+  align-self: stretch;
+}
+
+.detailImage {
+  object-fit: cover;
+}
+
+.detailThumbs {
+  padding: 0;
+  justify-content: flex-start;
+}
+
+.detailContent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.lightboxOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 100;
+}
+
+.lightboxCard {
+  width: min(1100px, 100%);
+  background: #0a0a0a;
+  border-radius: 14px;
+  padding: 12px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.lightboxTop {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.lightboxClose {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border-radius: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.lightboxImageWrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 80vh;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-sizing: border-box;
+}
+
+.lightboxImage {
+  object-fit: cover;
+}
+
+.lightboxThumbs {
+  padding: 0;
+  gap: 8px;
+}
+
+.lightboxThumbs .thumbBtn {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.lightboxThumbs .thumbBtnActive {
+  border-color: var(--color-accent);
+}
+
+.detailActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.mediaColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  touch-action: pan-y;
+  width: 100%;
 }
 
 .modalThumb {
@@ -809,12 +1005,446 @@
   overflow: hidden;
   background: var(--color-surface-muted);
   border: 1px solid var(--color-border);
+  max-width: calc(100vw - 64px);
+  touch-action: pan-x;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 0;
+}
+
+:global(.modalThumb img) {
+  object-fit: cover;
+  object-position: center center;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
 }
 
 .modalContent {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  touch-action: pan-y;
+  width: 100%;
+}
+
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.dashboardCard {
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 12px;
+  background: var(--color-surface-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dashboardCardAccent {
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--color-accent), #0f5f53);
+  color: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.18);
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.metricList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.metricList:last-child {
+  border-bottom: none;
+}
+
+.quickGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.quickAction {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  padding: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  text-align: left;
+}
+
+.dashboardHero {
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 14px;
+  background: linear-gradient(135deg, rgba(24, 109, 95, 0.08), rgba(24, 109, 95, 0.18));
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 12px;
+}
+
+.heroStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.statCard {
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 10px;
+  background: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.statBar {
+  width: 100%;
+  height: 8px;
+  background: var(--color-surface-muted);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.statBar span {
+  display: block;
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 999px;
+}
+
+.statPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: var(--color-surface);
+  font-weight: 700;
+  width: fit-content;
+}
+
+.userAds {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.userAdCard {
+  display: grid;
+  grid-template-columns: 90px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface-muted);
+}
+
+.userAdThumb {
+  position: relative;
+  width: 90px;
+  height: 70px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.userAdThumb img {
+  object-fit: cover;
+}
+
+.userAdBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.messagesShell {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 12px;
+}
+
+.threadList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.threadItem {
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 10px;
+  background: var(--color-surface);
+  text-align: left;
+  cursor: pointer;
+}
+
+.threadTitle {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.threadMeta {
+  font-size: 12px;
+  color: var(--color-text-dim);
+}
+
+.threadActive {
+  border-color: var(--color-accent);
+  background: var(--color-surface-muted);
+}
+
+.chatWindow {
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chatHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.statusDot {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.chatBubbles {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.bubble {
+  max-width: 80%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  position: relative;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+}
+
+.bubbleIncoming {
+  align-self: flex-start;
+}
+
+.bubbleOutgoing {
+  align-self: flex-end;
+  background: var(--color-accent);
+  color: var(--color-surface);
+  border-color: var(--color-accent-strong);
+}
+
+.bubbleMeta {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--color-text-dim);
+}
+
+.chatInputRow {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.attachButtons {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.attachButton {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+  border-radius: 10px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.chatInput {
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 15px;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.sendButton {
+  border: none;
+  background: var(--color-accent);
+  color: var(--color-surface);
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dashboardCardAccent .listSimple li {
+  color: var(--color-surface);
+}
+
+.dashboardCardAccent .heading3,
+.dashboardCardAccent .overtitle {
+  color: var(--color-surface);
+}
+
+.dashboardCardAccent .primaryButton {
+  background: var(--color-surface);
+  color: var(--color-accent-strong);
+}
+
+.mobileNav {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
+
+.mobileNav button {
+  flex: 1;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px;
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.navActive {
+  background: var(--color-accent);
+  color: var(--color-surface);
+  border-color: var(--color-accent-strong);
+}
+
+.listSimple {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  color: var(--color-text-dim);
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mobileNav {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
+
+.mobileNav button {
+  flex: 1;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px;
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.navActive {
+  background: var(--color-accent);
+  color: var(--color-surface);
+  border-color: var(--color-accent-strong);
+}
+
+.carouselNavLeft,
+.carouselNavRight {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  z-index: 2;
+}
+
+.carouselNavLeft {
+  left: 10px;
+}
+
+.carouselNavRight {
+  right: 10px;
+}
+
+.thumbStrip {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  overflow-x: auto;
+  width: 100%;
+  padding: 0 4px;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.thumbBtn {
+  position: relative;
+  width: 70px;
+  height: 60px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.thumbBtnActive {
+  border-color: var(--color-accent);
 }
 
 .modalActions {
@@ -832,6 +1462,8 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .replyHeader {
@@ -862,6 +1494,8 @@
   background: var(--color-surface);
   color: var(--color-text);
   font-size: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .replyActions {
@@ -884,6 +1518,28 @@
   gap: 4px;
 }
 
+.attributeList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+
+.attributeRow {
+  display: flex;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+.attributeLabel {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.attributeValue {
+  color: var(--color-text-dim);
+}
+
 .sellerStrip {
   background: var(--color-surface-muted);
   border-top: 1px solid var(--color-border);
@@ -895,7 +1551,7 @@
 }
 
 .footer {
-  margin-top: 18px;
+  margin-top: auto;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 18px;
@@ -975,6 +1631,10 @@
   .countyCard,
   .createCard {
     width: 100%;
+  }
+
+  .messagesShell {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1062,5 +1722,61 @@
 
   .replyBody {
     flex-direction: column;
+  }
+
+  .mediaColumn {
+    order: 1;
+  }
+
+  .modalContent {
+    order: 2;
+  }
+
+  .detailLayout {
+    gap: 14px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .detailHeaderActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .detailThumbs {
+    padding: 0;
+  }
+
+  .detailImageWrap {
+    width: 100%;
+    max-width: 100%;
+    align-self: stretch;
+  }
+
+  .lightboxOverlay {
+    padding: 12px;
+  }
+
+  .lightboxCard {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    gap: 12px;
+  }
+
+  .lightboxImageWrap {
+    aspect-ratio: 16 / 10;
+    max-height: 70vh;
+  }
+
+  .mobileNav {
+    display: flex;
+  }
+
+  .modalCard {
+    max-width: 100vw;
+    width: 100vw;
+    border-radius: 0;
+    padding: 12px;
   }
 }

@@ -2,13 +2,10 @@
 
 import styles from "./page.module.css";
 import { ThemeToggle } from "../components/theme-toggle";
-import { useMemo, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import Image from "next/image";
-
-type FilterOption =
-  | { type: "select"; label: string; options: string[] }
-  | { type: "range"; label: string; min: string; max: string; placeholder?: string }
-  | { type: "chip"; label: string; options: string[] };
+import type { Category, Listing } from "../lib/types";
+import { placeholderImage } from "../lib/placeholders";
 
 const counties = [
   "Stockholm",
@@ -34,229 +31,15 @@ const counties = [
   "Norrbotten",
 ];
 
-const categories: Array<{
-  value: string;
-  label: string;
-  filters: FilterOption[];
-}> = [
-  {
-    value: "fordon",
-    label: "Fordon",
-    filters: [
-      { type: "select", label: "Underkategori", options: ["Bilar", "MC", "Båt"] },
-      { type: "range", label: "Årsmodell", min: "2000", max: "2024" },
-      { type: "range", label: "Miltal", min: "0", max: "30 000" },
-      { type: "select", label: "Drivmedel", options: ["Bensin", "Diesel", "Hybrid", "El"] },
-      { type: "select", label: "Växellåda", options: ["Manuell", "Automat"] },
-    ],
-  },
-  {
-    value: "elektronik",
-    label: "Elektronik",
-    filters: [
-      { type: "select", label: "Typ", options: ["Laptop", "Mobil", "TV", "Spelkonsol"] },
-      { type: "select", label: "Skick", options: ["Nyskick", "Bra", "Använt"] },
-      { type: "range", label: "Pris", min: "500", max: "30 000" },
-    ],
-  },
-  {
-    value: "hem",
-    label: "Hem & möbler",
-    filters: [
-      { type: "select", label: "Typ", options: ["Soffor", "Bord", "Stolar", "Säng"] },
-      { type: "select", label: "Material", options: ["Trä", "Tyg", "Läder"] },
-      { type: "range", label: "Pris", min: "200", max: "20 000" },
-    ],
-  },
-];
-
-const sampleListings = [
-  {
-    title: "Volvo V70 2016",
-    price: "160 000 kr",
-    image:
-      "https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?auto=format&fit=crop&w=800&q=80",
-    meta: "Bil • Automat • 15 000 mil",
-    date: "12 dec",
-    seller: "Privat",
-  },
-  {
-    title: "MacBook Air 13",
-    price: "8 500 kr",
-    image:
-      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80",
-    meta: "Laptop • M2 • 2022",
-    date: "10 dec",
-    seller: "Privat",
-  },
-  {
-    title: "Matbord med stolar",
-    price: "1 200 kr",
-    image:
-      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=800&q=80",
-    meta: "4 stolar • Trä",
-    date: "8 dec",
-    seller: "Företag",
-  },
-  {
-    title: "Mountainbike",
-    price: "3 800 kr",
-    image:
-      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&w=800&q=80",
-    meta: "M • 27 växlar",
-    date: "7 dec",
-    seller: "Privat",
-  },
-  {
-    title: "iPhone 14 Pro 256GB",
-    price: "9 500 kr",
-    image:
-      "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=800&q=80",
-    meta: "Lila • Olåst",
-    date: "6 dec",
-    seller: "Privat",
-  },
-  {
-    title: "Soffa 3-sits",
-    price: "4 500 kr",
-    image:
-      "https://images.unsplash.com/photo-1484100356142-db6ab6244067?auto=format&fit=crop&w=800&q=80",
-    meta: "Grå • 2 år",
-    date: "6 dec",
-    seller: "Företag",
-  },
-  {
-    title: "Barnvagn duo",
-    price: "2 700 kr",
-    image:
-      "https://images.unsplash.com/photo-1523419400524-2230b6a006aa?auto=format&fit=crop&w=800&q=80",
-    meta: "Inkl liggdel",
-    date: "5 dec",
-    seller: "Privat",
-  },
-  {
-    title: "Fender Telecaster",
-    price: "6 500 kr",
-    image:
-      "https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=800&q=80",
-    meta: "Elgitarr • Case ingår",
-    date: "5 dec",
-    seller: "Privat",
-  },
-  {
-    title: "PlayStation 5",
-    price: "5 200 kr",
-    image:
-      "https://images.unsplash.com/photo-1606813902915-4b5b4c00cafd?auto=format&fit=crop&w=800&q=80",
-    meta: "2 kontroller",
-    date: "4 dec",
-    seller: "Företag",
-  },
-  {
-    title: "Kajak",
-    price: "7 200 kr",
-    image:
-      "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&q=80",
-    meta: "Enmans • Glasfiber",
-    date: "3 dec",
-    seller: "Privat",
-  },
-  {
-    title: "Trädgårdsbord",
-    price: "900 kr",
-    image:
-      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=800&q=80",
-    meta: "Utomhus • 4 sittplatser",
-    date: "3 dec",
-    seller: "Privat",
-  },
-  {
-    title: "Gräsklippare Husqvarna",
-    price: "3 400 kr",
-    image:
-      "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=800&q=80",
-    meta: "Bensindriven",
-    date: "2 dec",
-    seller: "Företag",
-  },
-  {
-    title: "Vinterdäck 17\"",
-    price: "2 500 kr",
-    image:
-      "https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?auto=format&fit=crop&w=800&q=80",
-    meta: "På fälg • 7 mm",
-    date: "2 dec",
-    seller: "Privat",
-  },
-  {
-    title: "Köksmaskin",
-    price: "1 800 kr",
-    image:
-      "https://images.unsplash.com/photo-1514986888952-8cd320577b68?auto=format&fit=crop&w=800&q=80",
-    meta: "Rostfri • 1000W",
-    date: "1 dec",
-    seller: "Privat",
-  },
-  {
-    title: "Canon EOS R",
-    price: "7 800 kr",
-    image:
-      "https://images.unsplash.com/photo-1519183071298-a2962be90b8e?auto=format&fit=crop&w=800&q=80",
-    meta: "Fullformat • 24-105mm",
-    date: "1 dec",
-    seller: "Privat",
-  },
-  {
-    title: "Kontorsstol ergonomisk",
-    price: "1 200 kr",
-    image:
-      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=800&q=80",
-    meta: "Justerbar • Nackstöd",
-    date: "30 nov",
-    seller: "Företag",
-  },
-  {
-    title: "Elcykel pendling",
-    price: "14 500 kr",
-    image:
-      "https://images.unsplash.com/photo-1541625810712-95d527544570?auto=format&fit=crop&w=800&q=80",
-    meta: "60 km räckvidd",
-    date: "29 nov",
-    seller: "Privat",
-  },
-  {
-    title: "Vespa Primavera",
-    price: "17 000 kr",
-    image:
-      "https://images.unsplash.com/photo-1471478331149-c72f17e33c73?auto=format&fit=crop&w=800&q=80",
-    meta: "125cc • 2019",
-    date: "28 nov",
-    seller: "Företag",
-  },
-  {
-    title: "Flytthjälp timpris",
-    price: "Offert",
-    image:
-      "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=800&q=80",
-    meta: "Stockholm • Företag",
-    date: "27 nov",
-    seller: "Företag",
-  },
-  {
-    title: "Barnsäng 90 cm",
-    price: "900 kr",
-    image:
-      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=800&q=80",
-    meta: "Trä • Inkl madrass",
-    date: "26 nov",
-    seller: "Privat",
-  },
-];
-
 export default function Home() {
   const [saleType, setSaleType] = useState<"saljes" | "kopes">("saljes");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [sortBy, setSortBy] = useState<"latest" | "priceLow" | "priceHigh">("latest");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [activePanel, setActivePanel] = useState<
+    "browse" | "dashboard" | "messages" | "new" | "favorites"
+  >("browse");
   const [waitlist, setWaitlist] = useState<Set<string>>(new Set());
   const [showReply, setShowReply] = useState(false);
   const [form, setForm] = useState({
@@ -269,6 +52,9 @@ export default function Home() {
     name: "",
     email: "",
     password: "",
+    sellerWebsite: "",
+    phone: "",
+    county: "",
   });
 
   const updateField =
@@ -277,20 +63,102 @@ export default function Home() {
       setForm((prev) => ({ ...prev, [key]: e.target.value }));
     };
 
+  const [filterValues, setFilterValues] = useState<Record<string, string>>({});
+  const [formErrors, setFormErrors] = useState<string[]>([]);
+  const updateFilterValue = (label: string, value: string) => {
+    setFilterValues((prev) => ({ ...prev, [label]: value }));
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const [cats, lst] = await Promise.all([
+        fetch("/api/categories").then((r) => r.json()),
+        fetch("/api/listings").then((r) => r.json()),
+      ]);
+      setCategoriesState(cats);
+      setListings(lst);
+      setFilterValues({});
+    };
+    fetchData();
+  }, []);
+
   const showPreview = useMemo(
     () => Object.values(form).some((v) => v.trim().length > 0),
     [form]
   );
   const [selectedCounty, setSelectedCounty] = useState<string>("");
-  const [selectedListing, setSelectedListing] = useState<(typeof sampleListings)[number] | null>(
-    null
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
+  const [currentImageIdx, setCurrentImageIdx] = useState(0);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [showLightbox, setShowLightbox] = useState(false);
+  const unreadCount = 3;
+  const freeMonthsLeft = 2;
+  const [categoriesState, setCategoriesState] = useState<Category[]>([]);
+  const categoryLabelLookup = useMemo(
+    () => Object.fromEntries(categoriesState.map((c) => [c.value, c.label])),
+    [categoriesState]
   );
+  const topCategories = useMemo(
+    () => categoriesState.filter((c) => !c.parentValue),
+    [categoriesState]
+  );
+  const childrenByParent = useMemo(() => {
+    const map: Record<string, Category[]> = {};
+    categoriesState.forEach((c) => {
+      if (!c.parentValue) return;
+      if (!map[c.parentValue]) map[c.parentValue] = [];
+      map[c.parentValue].push(c);
+    });
+    return map;
+  }, [categoriesState]);
+  const flattenedCategories = useMemo(() => {
+    const ordered: Category[] = [];
+    topCategories.forEach((cat) => {
+      ordered.push(cat);
+      const children = childrenByParent[cat.value];
+      if (children) children.forEach((child) => ordered.push(child));
+    });
+    return ordered;
+  }, [childrenByParent, topCategories]);
 
   const resetCounty = () => setSelectedCounty("");
-  const selectListing = (item: (typeof sampleListings)[number]) => {
+  const selectListing = (item: Listing) => {
     setSelectedListing(item);
     setShowReply(false);
+    setCurrentImageIdx(0);
+    if (item.county) setSelectedCounty(item.county);
   };
+
+  const sortedListings = useMemo(() => {
+    const list = [...listings];
+    if (sortBy === "latest") return list;
+    return list.sort((a, b) => {
+      const av = a.priceValue ?? Number.POSITIVE_INFINITY;
+      const bv = b.priceValue ?? Number.POSITIVE_INFINITY;
+      if (sortBy === "priceLow") return av - bv;
+      return bv - av;
+    });
+  }, [listings, sortBy]);
+
+  const attributeSummary = (item: Listing) => {
+    const attrs = getAttributeItems(item, true);
+    if (attrs.length === 0) return "";
+    return attrs.map((a) => `${a.label}: ${a.value}`).join(" • ");
+  };
+
+  const nextImage = () => {
+    if (!selectedListing) return;
+    const len = (selectedListing.images && selectedListing.images.length) || 1;
+    setCurrentImageIdx((idx) => (idx + 1) % len);
+  };
+
+  const prevImage = () => {
+    if (!selectedListing) return;
+    const len = (selectedListing.images && selectedListing.images.length) || 1;
+    setCurrentImageIdx((idx) => (idx - 1 + len) % len);
+  };
+
   const toggleWaitlist = (title: string) => {
     setWaitlist((prev) => {
       const next = new Set(prev);
@@ -302,6 +170,360 @@ export default function Home() {
       return next;
     });
   };
+
+  const getAttributeItems = (listing: Listing, onlyRequired = false) => {
+    const filtersForListing =
+      categoriesState.find((c) => c.value === listing.category)?.filters ?? [];
+    return filtersForListing
+      .filter((f) => (onlyRequired ? f.required : true))
+      .map((filter) => {
+        if (filter.type === "range") {
+          const min = listing.attributes?.[`${filter.label}-min`] || listing.attributes?.[filter.label];
+          const max = listing.attributes?.[`${filter.label}-max`];
+          if (!min && !max) return null;
+          if (min && max) return { label: filter.label, value: `${min} – ${max}` };
+          return { label: filter.label, value: min || max };
+        }
+        const val = listing.attributes?.[filter.label];
+        if (!val) return null;
+        return { label: filter.label, value: val };
+      })
+      .filter(Boolean) as { label: string; value: string }[];
+  };
+
+  if (selectedListing) {
+    const displayImages =
+      selectedListing.images && selectedListing.images.length > 0
+        ? selectedListing.images
+        : [placeholderImage];
+    const attributeItems = getAttributeItems(selectedListing);
+
+    return (
+      <div className={styles.page}>
+        <header className={styles.topbar}>
+          <div className={styles.brand}>
+            <span className={styles.dot} />
+            <span>selj</span>
+          </div>
+          <div className={styles.searchShell}>
+            <input
+              className={styles.searchInput}
+              placeholder="Sök efter bilar, elektronik, med mera"
+            />
+              <select
+                className={styles.categorySelect}
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+              >
+                <option value="">Alla kategorier</option>
+              {flattenedCategories.map((cat) => {
+                const parentLabel = cat.parentValue
+                  ? categoryLabelLookup[cat.parentValue] || cat.parentValue
+                  : "";
+                return (
+                  <option key={cat.value} value={cat.value}>
+                    {parentLabel ? `${parentLabel} / ${cat.label}` : cat.label}
+                  </option>
+                );
+              })}
+              </select>
+              <span className={styles.searchIcon}>🔍</span>
+            </div>
+          <div className={styles.topActions}>
+            <button
+              className={styles.linkButton}
+              onClick={() => setIsLoggedIn((v) => !v)}
+              aria-label="Toggle inloggat läge"
+            >
+              {isLoggedIn ? "Logga ut" : "Logga in"}
+            </button>
+            <ThemeToggle />
+          </div>
+        </header>
+
+        <section className={`${styles.card} ${styles.detailPage}`}>
+          <div className={styles.detailHeader}>
+            <div>
+              <p className={styles.overtitle}>{selectedCounty || "Län"}</p>
+              <h3 className={styles.heading3}>{selectedListing.title}</h3>
+              <p className={styles.listMeta}>
+                {(selectedListing.city && `${selectedListing.city}, `) || ""}
+                {selectedListing.county || selectedCounty || "Okänt län"} • {selectedListing.date} •{" "}
+                {selectedListing.seller}
+                {saleType === "kopes" ? " • Köpes" : ""}
+              </p>
+            </div>
+            <div className={styles.detailHeaderActions}>
+              <button
+                className={`${styles.favButton} ${
+                  waitlist.has(selectedListing.title) ? styles.favButtonActive : ""
+                }`}
+                onClick={() => toggleWaitlist(selectedListing.title)}
+              >
+                {waitlist.has(selectedListing.title) ? "Favorit ✓" : "Favorit"}
+              </button>
+              <button
+                className={styles.modalClose}
+                onClick={() => {
+                  setSelectedListing(null);
+                  setShowReply(false);
+                }}
+              >
+                Tillbaka
+              </button>
+            </div>
+          </div>
+
+          <div className={styles.detailLayout}>
+            <div
+              className={styles.detailMedia}
+              onTouchStart={(e) => setTouchStartX(e.touches[0].clientX)}
+              onTouchEnd={(e) => {
+                if (touchStartX === null) return;
+                const delta = e.changedTouches[0].clientX - touchStartX;
+                if (Math.abs(delta) > 30) {
+                  if (delta < 0) {
+                    nextImage();
+                  } else {
+                    prevImage();
+                  }
+                }
+                setTouchStartX(null);
+              }}
+            >
+              <div
+                className={styles.detailImageWrap}
+                onClick={() => setShowLightbox(true)}
+                role="button"
+                aria-label="Öppna bild i helskärm"
+              >
+                <button
+                  className={styles.carouselNavLeft}
+                  onClick={prevImage}
+                  aria-label="Föregående bild"
+                >
+                  ‹
+                </button>
+                <Image
+                  src={displayImages[currentImageIdx]}
+                  alt={selectedListing.title}
+                  fill
+                  sizes="(max-width: 700px) 100vw, (max-width: 1200px) 80vw, 60vw"
+                  className={styles.detailImage}
+                />
+                <button
+                  className={styles.carouselNavRight}
+                  onClick={nextImage}
+                  aria-label="Nästa bild"
+                >
+                  ›
+                </button>
+              </div>
+              <div className={`${styles.thumbStrip} ${styles.detailThumbs}`}>
+                {displayImages.map((img, idx) => (
+                  <button
+                    key={img + idx}
+                    className={`${styles.thumbBtn} ${
+                      currentImageIdx === idx ? styles.thumbBtnActive : ""
+                    }`}
+                    onClick={() => setCurrentImageIdx(idx)}
+                    aria-label={`Visa bild ${idx + 1}`}
+                  >
+                    <Image
+                      src={img}
+                      alt={`${selectedListing.title} ${idx + 1}`}
+                      fill
+                      sizes="80px"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className={styles.detailContent}>
+              {attributeItems.length > 0 && (
+                <div className={styles.attributeList}>
+                  {attributeItems.map((attr) => (
+                    <div key={attr.label} className={styles.attributeRow}>
+                      <span className={styles.attributeLabel}>{attr.label}:</span>
+                      <span className={styles.attributeValue}>{attr.value}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className={styles.body}>
+                {selectedListing.description?.trim() ||
+                  selectedListing.meta ||
+                  "Beskrivning saknas. Lägg till mer info i admin."}
+              </p>
+              <p className={styles.listPrice}>{selectedListing.price}</p>
+              {!showReply && (
+                <div className={styles.detailActions}>
+                  <button className={styles.primaryButton} onClick={() => setShowReply(true)}>
+                    Kontakta säljare
+                  </button>
+                </div>
+              )}
+              {showReply && (
+                <div className={styles.replyPanel}>
+                  <div className={styles.replyHeader}>
+                    <p className={styles.overtitle}>Meddela säljaren</p>
+                  </div>
+                  <div className={styles.replyBody}>
+                    <div className={styles.replyMessage}>
+                      <textarea placeholder="Skriv ditt meddelande..." />
+                      <div className={styles.replyActions}>
+                        <button className={styles.primaryButton}>Skicka</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className={styles.sellerStrip}>
+            <p className={styles.overtitle}>Säljare</p>
+            <p className={styles.listTitle}>
+              {selectedListing.sellerName ||
+                (selectedListing.seller === "Företag" ? "Företagssäljare" : "Privat säljare")}
+            </p>
+            <p className={styles.listMeta}>{selectedListing.seller}</p>
+            {selectedListing.sellerWebsite && (
+              <p className={styles.listMeta}>Hemsida: {selectedListing.sellerWebsite}</p>
+            )}
+            {selectedListing.sellerPhone && (
+              <p className={styles.listMeta}>Telefon: {selectedListing.sellerPhone}</p>
+            )}
+            {selectedListing.sellerEmail && (
+              <p className={styles.listMeta}>E-post: {selectedListing.sellerEmail}</p>
+            )}
+            {(selectedListing.city || selectedListing.county) && (
+              <p className={styles.listMeta}>
+                {(selectedListing.city && `${selectedListing.city}, `) || ""}
+                {selectedListing.county}
+              </p>
+            )}
+          </div>
+        </section>
+
+        {isLoggedIn && (
+          <nav className={styles.mobileNav}>
+            <button className={styles.navActive} onClick={() => setSelectedListing(null)}>
+              Till listan
+            </button>
+          </nav>
+        )}
+
+        {showLightbox && selectedListing && (
+          <div className={styles.lightboxOverlay} role="dialog" aria-modal="true">
+            <div className={styles.lightboxCard}>
+              <div className={styles.lightboxTop}>
+                <button className={styles.lightboxClose} onClick={() => setShowLightbox(false)}>
+                  Stäng
+                </button>
+              </div>
+              <div
+                className={styles.lightboxImageWrap}
+                onTouchStart={(e) => setTouchStartX(e.touches[0].clientX)}
+                onTouchEnd={(e) => {
+                  if (touchStartX === null) return;
+                  const delta = e.changedTouches[0].clientX - touchStartX;
+                  if (Math.abs(delta) > 30) {
+                    if (delta < 0) {
+                      nextImage();
+                    } else {
+                      prevImage();
+                    }
+                  }
+                  setTouchStartX(null);
+                }}
+              >
+                <button
+                  className={styles.carouselNavLeft}
+                  onClick={prevImage}
+                  aria-label="Föregående bild"
+                >
+                  ‹
+                </button>
+                <Image
+                  src={selectedListing.images[currentImageIdx]}
+                  alt={selectedListing.title}
+                  fill
+                  sizes="100vw"
+                  className={styles.lightboxImage}
+                />
+                <button
+                  className={styles.carouselNavRight}
+                  onClick={nextImage}
+                  aria-label="Nästa bild"
+                >
+                  ›
+                </button>
+              </div>
+              <div className={`${styles.thumbStrip} ${styles.lightboxThumbs}`}>
+                {displayImages.map((img, idx) => (
+                  <button
+                    key={img + idx}
+                    className={`${styles.thumbBtn} ${
+                      currentImageIdx === idx ? styles.thumbBtnActive : ""
+                    }`}
+                    onClick={() => setCurrentImageIdx(idx)}
+                    aria-label={`Visa bild ${idx + 1}`}
+                  >
+                    <Image src={img} alt={`${selectedListing.title} ${idx + 1}`} fill sizes="80px" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <footer className={styles.footer}>
+          <div className={styles.footerGrid}>
+            <div className={styles.footerBrand}>
+              <div className={styles.brand}>
+                <span className={styles.dot} />
+                <span>selj</span>
+              </div>
+              <p className={styles.body}>
+                Selj är marknadsplatsen för snabba affärer på mobil och desktop. Fokus
+                på rapp sök, stabil scroll och trygg kommunikation mellan köpare och säljare.
+              </p>
+              <div className={styles.footerMeta}>
+                <span>Org.nr 5599-123456</span>
+                <span>Stockholm, Sverige</span>
+              </div>
+            </div>
+            <div className={styles.footerCol}>
+              <h4>Produkt</h4>
+              <a href="#">Sök annonser</a>
+              <a href="#">Lägg upp annons</a>
+              <a href="#">Kategorier</a>
+              <a href="#">Säljes / Köpes</a>
+            </div>
+            <div className={styles.footerCol}>
+              <h4>Support</h4>
+              <a href="#">Hjälpcenter</a>
+              <a href="#">Rapportera annons</a>
+              <a href="#">Säkerhet & bedrägerier</a>
+              <a href="#">Cookie- och integritetspolicy</a>
+            </div>
+            <div className={styles.footerCol}>
+              <h4>Kontakt</h4>
+              <a href="mailto:hej@selj.se">hej@selj.se</a>
+              <a href="tel:+46812345678">+46 (0)8 12 34 56 78</a>
+              <a href="#">Press & media</a>
+              <a href="#">Jobb</a>
+            </div>
+          </div>
+          <div className={styles.footerBottom}>
+            <span>© {new Date().getFullYear()} Selj</span>
+            <span>Byggd för hög trafik med edge-cache och typo-tolerant sök.</span>
+          </div>
+        </footer>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.page}>
@@ -321,151 +543,273 @@ export default function Home() {
             onChange={(e) => setSelectedCategory(e.target.value)}
           >
             <option value="">Alla kategorier</option>
-            {categories.map((cat) => (
-              <option key={cat.value} value={cat.value}>
-                {cat.label}
-              </option>
-            ))}
+                    {flattenedCategories.map((cat) => {
+                      const parentLabel = cat.parentValue
+                        ? categoryLabelLookup[cat.parentValue] || cat.parentValue
+                        : "";
+                      return (
+                        <option key={cat.value} value={cat.value}>
+                          {parentLabel ? `${parentLabel} / ${cat.label}` : cat.label}
+                        </option>
+                      );
+                    })}
           </select>
           <span className={styles.searchIcon}>🔍</span>
         </div>
         <div className={styles.topActions}>
-          <button className={styles.linkButton}>Logga in</button>
-          <button className={styles.linkButton}>Meny</button>
+          <button className={styles.iconButton} aria-label="Meddelanden">
+            ✉️
+            {unreadCount > 0 && <span className={styles.unreadBadge}>{unreadCount}</span>}
+          </button>
+          <button
+            className={styles.linkButton}
+            onClick={() => setIsLoggedIn((v) => !v)}
+            aria-label="Toggle inloggat läge"
+          >
+            {isLoggedIn ? "Logga ut" : "Logga in"}
+          </button>
+          {isLoggedIn && (
+            <button
+              className={styles.linkButton}
+              onClick={() => setActivePanel("dashboard")}
+            >
+              Mina sidor
+            </button>
+          )}
           <ThemeToggle />
         </div>
       </header>
-
-      {selectedCounty ? (
-        <section className={`${styles.card} ${styles.listView}`}>
-          <div className={styles.listHeaderRow}>
-            <div>
-              <p className={styles.overtitle}>Valt län</p>
-              <h2 className={styles.heading2}>{selectedCounty}</h2>
-              <p className={styles.body}>
-                20 exempelannonser. Senaste överst när vi kopplar på riktiga data.
-              </p>
+      {activePanel === "browse" ? (
+        selectedCounty ? (
+          <section className={`${styles.card} ${styles.listView}`}>
+            <div className={styles.listHeaderRow}>
+              <div>
+                <p className={styles.overtitle}>Valt län</p>
+                <h2 className={styles.heading2}>{selectedCounty}</h2>
+                <p className={styles.body}>
+                  {sortedListings.length} exempelannonser. Senaste överst när vi kopplar på riktiga
+                  data.
+                </p>
+              </div>
+              <div className={styles.listActions}>
+                <div className={styles.sortRow}>
+                  <button
+                    className={sortBy === "latest" ? styles.segmentActive : styles.segment}
+                    onClick={() => setSortBy("latest")}
+                  >
+                    Senaste
+                  </button>
+                  <button
+                    className={sortBy === "priceLow" ? styles.segmentActive : styles.segment}
+                    onClick={() => setSortBy("priceLow")}
+                  >
+                    Lägst pris
+                  </button>
+                  <button
+                    className={sortBy === "priceHigh" ? styles.segmentActive : styles.segment}
+                    onClick={() => setSortBy("priceHigh")}
+                  >
+                    Högst pris
+                  </button>
+                </div>
+                <div className={styles.viewToggle}>
+                  <button
+                    className={viewMode === "grid" ? styles.segmentActive : styles.segment}
+                    onClick={() => setViewMode("grid")}
+                  >
+                    Rutnät
+                  </button>
+                  <button
+                    className={viewMode === "list" ? styles.segmentActive : styles.segment}
+                    onClick={() => setViewMode("list")}
+                  >
+                    Lista
+                  </button>
+                </div>
+                <div className={styles.switchRow}>
+                  <button
+                    className={
+                      saleType === "saljes" ? styles.segmentActive : styles.segment
+                    }
+                    onClick={() => setSaleType("saljes")}
+                  >
+                    Säljes
+                  </button>
+                  <button
+                    className={
+                      saleType === "kopes" ? styles.segmentActive : styles.segment
+                    }
+                    onClick={() => setSaleType("kopes")}
+                  >
+                    Köpes
+                  </button>
+                </div>
+                <button className={styles.linkButton} onClick={resetCounty}>
+                  Byt län
+                </button>
+              </div>
             </div>
-            <div className={styles.listActions}>
-              <div className={styles.viewToggle}>
-                <button
-                  className={viewMode === "grid" ? styles.segmentActive : styles.segment}
-                  onClick={() => setViewMode("grid")}
-                >
-                  Rutnät
-                </button>
-                <button
-                  className={viewMode === "list" ? styles.segmentActive : styles.segment}
-                  onClick={() => setViewMode("list")}
-                >
-                  Lista
-                </button>
-              </div>
-              <div className={styles.switchRow}>
-                <button
-                  className={
-                    saleType === "saljes" ? styles.segmentActive : styles.segment
-                  }
-                  onClick={() => setSaleType("saljes")}
-                >
-                  Säljes
-                </button>
-                <button
-                  className={
-                    saleType === "kopes" ? styles.segmentActive : styles.segment
-                  }
-                  onClick={() => setSaleType("kopes")}
-                >
-                  Köpes
-                </button>
-              </div>
-              <button className={styles.linkButton} onClick={resetCounty}>
-                Byt län
-              </button>
+
+            {selectedCategory && (
+          <div className={styles.filterBar}>
+            <div className={styles.filterChips}>
+                  {categoriesState
+                    .find((cat) => cat.value === selectedCategory)
+                    ?.filters.map((filter) => {
+                      if (filter.type === "select") {
+                        return (
+                          <div key={filter.label} className={styles.filterField}>
+                            <label>{filter.label}</label>
+                            <select
+                              value={filterValues[filter.label] || ""}
+                              onChange={(e) => updateFilterValue(filter.label, e.target.value)}
+                            >
+                              <option value="">Alla</option>
+                              {filter.options.map((opt) => (
+                                <option key={opt} value={opt}>
+                                  {opt}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        );
+                      }
+                      if (filter.type === "range") {
+                        const isSlider = filter.ui === "slider";
+                        return (
+                          <div key={filter.label} className={styles.filterField}>
+                            <label>{filter.label}</label>
+                            {isSlider ? (
+                              <input
+                                type="range"
+                                min={filter.min}
+                                max={filter.max}
+                                value={filterValues[filter.label] || filter.min}
+                                onChange={(e) => updateFilterValue(filter.label, e.target.value)}
+                              />
+                            ) : (
+                              <div className={styles.rangeFields}>
+                                <input
+                                  type="number"
+                                  placeholder={filter.min}
+                                  value={filterValues[`${filter.label}-min`] || ""}
+                                  onChange={(e) =>
+                                    updateFilterValue(`${filter.label}-min`, e.target.value)
+                                  }
+                                />
+                                <span>–</span>
+                                <input
+                                  type="number"
+                                  placeholder={filter.max}
+                                  value={filterValues[`${filter.label}-max`] || ""}
+                                  onChange={(e) =>
+                                    updateFilterValue(`${filter.label}-max`, e.target.value)
+                                  }
+                                />
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
+                      if (filter.type === "chip") {
+                        return (
+                          <div key={filter.label} className={styles.filterField}>
+                            <label>{filter.label}</label>
+                            <div className={styles.chipRow}>
+                              {filter.options.map((opt) => {
+                                const active = filterValues[filter.label] === opt;
+                                return (
+                                  <button
+                                    key={opt}
+                                    className={`${styles.chipButton} ${active ? styles.chipActive : ""}`}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      updateFilterValue(filter.label, active ? "" : opt);
+                                    }}
+                                  >
+                                    {opt}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })}
             </div>
           </div>
+            )}
 
-          {selectedCategory && (
-            <div className={styles.filterBar}>
-              <div className={styles.filterChips}>
-                {categories
-                  .find((cat) => cat.value === selectedCategory)
-                  ?.filters.map((filter) => {
-                    if (filter.type === "select") {
-                      return (
-                        <div key={filter.label} className={styles.filterField}>
-                          <label>{filter.label}</label>
-                          <select>
-                            <option value="">Alla</option>
-                            {filter.options.map((opt) => (
-                              <option key={opt} value={opt}>
-                                {opt}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      );
-                    }
-                    if (filter.type === "range") {
-                      return (
-                        <div key={filter.label} className={styles.filterField}>
-                          <label>{filter.label}</label>
-                          <div className={styles.rangeFields}>
-                            <input placeholder={filter.min} />
-                            <span>–</span>
-                            <input placeholder={filter.max} />
-                          </div>
-                        </div>
-                      );
-                    }
-                    if (filter.type === "chip") {
-                      return (
-                        <div key={filter.label} className={styles.filterField}>
-                          <label>{filter.label}</label>
-                          <div className={styles.chipRow}>
-                            {filter.options.map((opt) => (
-                              <button key={opt} className={styles.chipButton}>
-                                {opt}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    }
-                    return null;
-                  })}
+            {viewMode === "grid" ? (
+              <div className={styles.listGrid}>
+                {sortedListings.map((item) => (
+                  <article
+                    key={item.id}
+                    className={styles.listCard}
+                    onClick={() => selectListing(item)}
+                  >
+                    <div className={styles.listThumb}>
+                      <Image
+                        src={item.images?.[0] || placeholderImage}
+                        alt={item.title}
+                        fill
+                        sizes="(max-width: 700px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                      />
+                    </div>
+                    <div className={styles.listCardBody}>
+                      <p className={styles.listTitle}>{item.title}</p>
+                      <p className={styles.listPrice}>{item.price}</p>
+                      <p className={styles.listMeta}>
+                        {(item.city && `${item.city}, `) || ""}
+                        {item.county || selectedCounty || "Okänt län"} • {item.date} • {item.seller}
+                      </p>
+                      {attributeSummary(item) && (
+                        <p className={styles.listMetaMuted}>{attributeSummary(item)}</p>
+                      )}
+                      <button
+                        className={`${styles.waitButton} ${waitlist.has(item.title) ? styles.waitButtonActive : ""} ${styles.listHeart}`}
+                        aria-label="Lägg på vänt"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleWaitlist(item.title);
+                        }}
+                      >
+                        ♥
+                      </button>
+                    </div>
+                  </article>
+                ))}
               </div>
-            </div>
-          )}
-
-          {viewMode === "grid" ? (
-            <div className={styles.listGrid}>
-              {sampleListings.map((item) => (
-                <article
-                  key={item.title}
-                  className={styles.listCard}
-                  onClick={() => selectListing(item)}
-                >
-                  <div className={styles.listThumb}>
-                    <Image
-                      src={item.image}
-                      alt={item.title}
-                      fill
-                      sizes="(max-width: 700px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                    />
-                  </div>
-                  <div className={styles.listCardBody}>
-                    <p className={styles.listTitle}>{item.title}</p>
-                    <p className={styles.listPrice}>{item.price}</p>
-                    <p className={styles.listMeta}>
-                      {selectedCounty} • {item.meta}
-                      {saleType === "kopes" ? " • Köpes" : ""}
-                    </p>
-                    <p className={styles.listMetaMuted}>
-                      {item.date} • {item.seller}
-                    </p>
+            ) : (
+              <div className={styles.listRows}>
+                {sortedListings.map((item) => (
+                  <article
+                    key={item.id}
+                    className={styles.listRow}
+                    onClick={() => selectListing(item)}
+                  >
+                    <div className={styles.listRowThumb}>
+                      <Image
+                        src={item.images?.[0] || placeholderImage}
+                        alt={item.title}
+                        fill
+                        sizes="160px"
+                      />
+                    </div>
+                    <div className={styles.listRowBody}>
+                      <p className={styles.listTitle}>{item.title}</p>
+                      <p className={styles.listPrice}>{item.price}</p>
+                      <p className={styles.listMeta}>
+                        {(item.city && `${item.city}, `) || ""}
+                        {item.county || selectedCounty || "Okänt län"} • {item.date} • {item.seller}
+                      </p>
+                      {attributeSummary(item) && (
+                        <p className={styles.listMetaMuted}>{attributeSummary(item)}</p>
+                      )}
+                    </div>
                     <button
-                      className={`${styles.waitButton} ${waitlist.has(item.title) ? styles.waitButtonActive : ""} ${styles.listHeart}`}
+                      className={`${styles.waitButton} ${waitlist.has(item.title) ? styles.waitButtonActive : ""}`}
                       aria-label="Lägg på vänt"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -474,205 +818,425 @@ export default function Home() {
                     >
                       ♥
                     </button>
-                  </div>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <div className={styles.listRows}>
-              {sampleListings.map((item) => (
-                <article
-                  key={item.title}
-                  className={styles.listRow}
-                  onClick={() => selectListing(item)}
-                >
-                  <div className={styles.listRowThumb}>
-                    <Image
-                      src={item.image}
-                      alt={item.title}
-                      fill
-                      sizes="160px"
-                    />
-                  </div>
-                  <div className={styles.listRowBody}>
-                    <p className={styles.listTitle}>{item.title}</p>
-                    <p className={styles.listPrice}>{item.price}</p>
-                    <p className={styles.listMeta}>
-                      {selectedCounty} • {item.meta}
-                      {saleType === "kopes" ? " • Köpes" : ""}
-                    </p>
-                    <p className={styles.listMetaMuted}>
-                      {item.date} • {item.seller}
-                    </p>
-                  </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+        ) : (
+          <main className={styles.layout}>
+            <section className={`${styles.card} ${styles.createCard}`}>
+              <div className={styles.cardHeader}>
+                <div>
+                  <p className={styles.overtitle}>Publicera gratis</p>
+                  <h1 className={styles.heading1}>Lägg upp annons</h1>
+                </div>
+                <div className={styles.switchRow}>
                   <button
-                    className={`${styles.waitButton} ${waitlist.has(item.title) ? styles.waitButtonActive : ""}`}
-                    aria-label="Lägg på vänt"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleWaitlist(item.title);
-                    }}
+                    className={
+                      saleType === "saljes" ? styles.segmentActive : styles.segment
+                    }
+                    onClick={() => setSaleType("saljes")}
                   >
-                    ♥
+                    Säljes
                   </button>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
-      ) : (
-        <main className={styles.layout}>
-          <section className={`${styles.card} ${styles.createCard}`}>
-            <div className={styles.cardHeader}>
-              <div>
-                <p className={styles.overtitle}>Publicera gratis</p>
-                <h1 className={styles.heading1}>Lägg upp annons</h1>
+                  <button
+                    className={
+                      saleType === "kopes" ? styles.segmentActive : styles.segment
+                    }
+                    onClick={() => setSaleType("kopes")}
+                  >
+                    Köpes
+                  </button>
+                </div>
               </div>
-              <div className={styles.switchRow}>
-                <button
-                  className={
-                    saleType === "saljes" ? styles.segmentActive : styles.segment
-                  }
-                  onClick={() => setSaleType("saljes")}
-                >
-                  Säljes
-                </button>
-                <button
-                  className={
-                    saleType === "kopes" ? styles.segmentActive : styles.segment
-                  }
-                  onClick={() => setSaleType("kopes")}
-                >
-                  Köpes
-                </button>
-              </div>
-            </div>
 
-            <div className={styles.formGrid}>
-              <div className={styles.field}>
-                <label>Rubrik</label>
-                <input
-                  placeholder="Ex. Volvo V70 2016"
-                  value={form.title}
-                  onChange={updateField("title")}
-                />
-              </div>
-              <div className={styles.inlineFields}>
-                <input
-                  placeholder="Kategori"
-                  value={form.category}
-                  onChange={updateField("category")}
-                />
-                <input
-                  placeholder="Underkategori"
-                  value={form.subcategory}
-                  onChange={updateField("subcategory")}
-                />
-              </div>
-              <div className={styles.inlineFields}>
-                <input
-                  placeholder="Pris"
-                  value={form.price}
-                  onChange={updateField("price")}
-                />
-                <input
-                  placeholder="Ort"
-                  value={form.city}
-                  onChange={updateField("city")}
-                />
-              </div>
-              <div className={styles.field}>
-                <label>Beskrivning</label>
-                <textarea
-                  className={styles.textarea}
-                  placeholder="Fritext om annonsen"
-                  value={form.description}
-                  onChange={updateField("description")}
-                />
-              </div>
-              <div className={styles.inlineFields}>
-                <input
-                  placeholder="Namn"
-                  value={form.name}
-                  onChange={updateField("name")}
-                />
-                <input
-                  placeholder="E-post"
-                  value={form.email}
-                  onChange={updateField("email")}
-                />
-                <input
-                  placeholder="Lösenord"
-                  type="password"
-                  value={form.password}
-                  onChange={updateField("password")}
-                />
-              </div>
-              <div className={styles.field}>
-                <label>Media (bild/video)</label>
-                <div className={styles.uploadZone}>
-                  <p>Dra och släpp på desktop eller välj/ta foto på mobil.</p>
-                  <p className={styles.micro}>Max 10MB per fil. Stöder bild och video.</p>
-                  <div className={styles.uploadActions}>
-                    <button type="button" className={styles.uploadButton}>
-                      Välj filer
-                    </button>
-                    <button
-                      type="button"
-                      className={`${styles.uploadButton} ${styles.mobileOnly}`}
-                    >
-                      Öppna kamera
-                    </button>
+              <div className={styles.formGrid}>
+                <div className={styles.field}>
+                  <label>Rubrik</label>
+                  <input
+                    placeholder="Ex. Volvo V70 2016"
+                    value={form.title}
+                    onChange={updateField("title")}
+                  />
+                </div>
+                <div className={styles.inlineFields}>
+                  <input
+                    placeholder="Kategori"
+                    value={form.category}
+                    onChange={updateField("category")}
+                  />
+                  <input
+                    placeholder="Underkategori"
+                    value={form.subcategory}
+                    onChange={updateField("subcategory")}
+                  />
+                </div>
+                <div className={styles.inlineFields}>
+                  <input
+                    placeholder="Pris"
+                    value={form.price}
+                    onChange={updateField("price")}
+                  />
+                  <input
+                    placeholder="Ort"
+                    value={form.city}
+                    onChange={updateField("city")}
+                  />
+                </div>
+                <div className={styles.inlineFields}>
+                  <input
+                    placeholder="Län"
+                    value={form.county}
+                    onChange={updateField("county")}
+                  />
+                  <input
+                    placeholder="Telefon"
+                    value={form.phone}
+                    onChange={updateField("phone")}
+                  />
+                </div>
+                <div className={styles.field}>
+                  <label>Beskrivning</label>
+                  <textarea
+                    className={styles.textarea}
+                    placeholder="Fritext om annonsen"
+                    value={form.description}
+                    onChange={updateField("description")}
+                  />
+                </div>
+                <div className={styles.inlineFields}>
+                  <input
+                    placeholder="Namn"
+                    value={form.name}
+                    onChange={updateField("name")}
+                  />
+                  <input
+                    placeholder="E-post"
+                    value={form.email}
+                    onChange={updateField("email")}
+                  />
+                  <input
+                    placeholder="Lösenord"
+                    type="password"
+                    value={form.password}
+                    onChange={updateField("password")}
+                  />
+                </div>
+                <div className={styles.inlineFields}>
+                  <input
+                    placeholder="Webbplats (företag)"
+                    value={form.sellerWebsite}
+                    onChange={updateField("sellerWebsite")}
+                  />
+                </div>
+                <div className={styles.field}>
+                  <label>Media (bild/video)</label>
+                  <div className={styles.uploadZone}>
+                    <p>Dra och släpp på desktop eller välj/ta foto på mobil.</p>
+                    <p className={styles.micro}>Max 10MB per fil. Stöder bild och video.</p>
+                    <div className={styles.uploadActions}>
+                      <button type="button" className={styles.uploadButton}>
+                        Välj filer
+                      </button>
+                      <button
+                        type="button"
+                        className={`${styles.uploadButton} ${styles.mobileOnly}`}
+                      >
+                        Öppna kamera
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {showPreview && (
-              <div className={styles.preview}>
-                <p className={styles.overtitle}>Förhandsgranskning</p>
-                <div className={styles.previewCard}>
-                  <div className={styles.previewImage} />
-                  <div className={styles.previewContent}>
-                    <p className={styles.listTitle}>
-                      {form.title || "Rubrik visas här"}
-                    </p>
-                    <p className={styles.listPrice}>
-                      {form.price ? `${form.price} kr` : "Pris"}
-                    </p>
-                    <p className={styles.listMeta}>
-                      {(form.city && `${form.city} • `) || ""}
-                      {form.category || "Kategori"}
-                      {saleType === "kopes" ? " • Köpes" : ""}
-                    </p>
+              {showPreview && (
+                <div className={styles.preview}>
+                  <p className={styles.overtitle}>Förhandsgranskning</p>
+                  <div className={styles.previewCard}>
+                    <div className={styles.previewImage} />
+                    <div className={styles.previewContent}>
+                      <p className={styles.listTitle}>
+                        {form.title || "Rubrik visas här"}
+                      </p>
+                      <p className={styles.listPrice}>
+                        {form.price ? `${form.price} kr` : "Pris"}
+                      </p>
+                      <p className={styles.listMeta}>
+                        {(form.city && `${form.city} • `) || ""}
+                        {form.category || "Kategori"}
+                        {saleType === "kopes" ? " • Köpes" : ""}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className={styles.actions}>
+                <button className={styles.primaryButton}>Publicera</button>
+                <p className={styles.micro}>Utkast sparas automatiskt. Live i 90 dagar.</p>
+              </div>
+            </section>
+
+            <section className={`${styles.card} ${styles.countyCard}`}>
+              <div className={styles.cardHeader}>
+                <h2 className={styles.heading2}>Välj län</h2>
+              </div>
+              <div className={styles.countyList}>
+                {counties.map((county) => (
+                  <button
+                    key={county}
+                    className={styles.countyRow}
+                    onClick={() => setSelectedCounty(county)}
+                  >
+                    {county}
+                  </button>
+                ))}
+              </div>
+            </section>
+          </main>
+        )
+      ) : (
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h2 className={styles.heading2}>
+              {activePanel === "dashboard"
+                ? "Mina sidor"
+                : activePanel === "messages"
+                ? "Meddelanden"
+                : activePanel === "new"
+                ? "Ny annons"
+                : "Favoriter"}
+            </h2>
+            <span className={styles.badge}>Inloggad</span>
+          </div>
+          <div className={styles.dashboardGrid}>
+            {activePanel === "dashboard" && (
+              <>
+                <div className={styles.dashboardHero}>
+                  <div>
+                    <p className={styles.overtitle}>Översikt</p>
+                    <h2 className={styles.heading2}>Mina sidor</h2>
+                    <p className={styles.body}>Snabb koll på annonser, meddelanden och siffror.</p>
+                  </div>
+                  <div className={styles.heroStats}>
+                    <div className={styles.statCard}>
+                      <p className={styles.micro}>Visningar 7d</p>
+                      <p className={styles.heading3}>230</p>
+                      <div className={styles.statBar}>
+                        <span style={{ width: "68%" }} />
+                      </div>
+                    </div>
+                    <div className={styles.statCard}>
+                      <p className={styles.micro}>Favoriter 7d</p>
+                      <p className={styles.heading3}>12</p>
+                      <div className={styles.statBar}>
+                        <span style={{ width: "40%" }} />
+                      </div>
+                    </div>
+                    <div className={styles.statCard}>
+                      <p className={styles.micro}>Svarstid</p>
+                      <p className={styles.heading3}>11 min</p>
+                      <div className={styles.statPill}>Snabbt</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={styles.dashboardCardAccent}>
+                  <div className={styles.cardHeader}>
+                    <div>
+                      <p className={styles.overtitle}>Konversationer</p>
+                      <p className={styles.heading3}>3 aktiva</p>
+                    </div>
+                    <button className={styles.primaryButton}>Öppna inbox</button>
+                  </div>
+                  <ul className={styles.listSimple}>
+                    <li>Volvo V70 2016 — 2 nya</li>
+                    <li>MacBook Air 13 — väntar svar</li>
+                    <li>Soffa 3-sits — leveransfråga</li>
+                  </ul>
+                </div>
+
+                <div className={styles.dashboardCard}>
+                  <div className={styles.cardHeader}>
+                    <div>
+                      <p className={styles.overtitle}>Mina annonser</p>
+                      <p className={styles.heading3}>2 aktiva</p>
+                    </div>
+                    <button className={styles.linkButton}>Skapa ny</button>
+                  </div>
+                  <div className={styles.userAds}>
+                    {listings.slice(0, 3).map((item) => (
+                      <div key={item.title} className={styles.userAdCard}>
+                        <div className={styles.userAdThumb}>
+                          <Image src={item.images[0]} alt={item.title} fill sizes="120px" />
+                        </div>
+                        <div className={styles.userAdBody}>
+                          <p className={styles.listTitle}>{item.title}</p>
+                          <p className={styles.listPrice}>{item.price}</p>
+                          <p className={styles.listMetaMuted}>142 visningar • 6 favoriter</p>
+                        </div>
+                        <button className={styles.quickAction}>Hantera</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className={styles.dashboardCard}>
+                  <div className={styles.cardHeader}>
+                    <div>
+                      <p className={styles.overtitle}>Fria annonsmånader</p>
+                      <p className={styles.heading3}>{freeMonthsLeft} kvar</p>
+                    </div>
+                    <button className={styles.primaryButton}>Dela och få fler</button>
+                  </div>
+                  <p className={styles.body}>
+                    Dela Selj i sociala medier för att låsa upp gratis annonser (värde 19 kr/st).
+                    Ditt saldo dras automatiskt när du publicerar.
+                  </p>
+                  <div className={styles.statBar}>
+                    <span style={{ width: `${Math.min(100, freeMonthsLeft * 20)}%` }} />
+                  </div>
+                  <div className={styles.metricList}>
+                    <div>
+                      <p className={styles.micro}>Så funkar det</p>
+                      <p className={styles.body}>Dela unik länk → +1 månad per 5 klick.</p>
+                    </div>
+                    <div>
+                      <p className={styles.micro}>Saldo auto-dragning</p>
+                      <p className={styles.body}>Kvarstående saldo används före debitering.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={styles.dashboardCard}>
+                  <div className={styles.cardHeader}>
+                    <div>
+                      <p className={styles.overtitle}>Snabbgenvägar</p>
+                      <p className={styles.heading3}>Jobba vidare</p>
+                    </div>
+                  </div>
+                  <div className={styles.quickGrid}>
+                    <button className={styles.quickAction}>Skapa ny annons</button>
+                    <button className={styles.quickAction}>Hitta meddelanden</button>
+                    <button className={styles.quickAction}>Se favoriter</button>
+                    <button className={styles.quickAction}>Öppna statistik</button>
+                  </div>
+                </div>
+              </>
+            )}
+            {activePanel === "messages" && (
+              <div className={styles.dashboardCard}>
+                <div className={styles.cardHeader}>
+                  <div>
+                    <p className={styles.overtitle}>Meddelanden</p>
+                    <p className={styles.heading3}>3 trådar</p>
+                  </div>
+                  <button className={styles.linkButton}>Visa alla</button>
+                </div>
+                <div className={styles.messagesShell}>
+                  <div className={styles.threadList}>
+                    {["Volvo V70 2016", "MacBook Air 13", "Soffa 3-sits"].map((t, idx) => (
+                      <button
+                        key={t}
+                        className={`${styles.threadItem} ${idx === 0 ? styles.threadActive : ""}`}
+                      >
+                        <div className={styles.threadTitle}>{t}</div>
+                        <div className={styles.threadMeta}>2 nya · 11:42</div>
+                      </button>
+                    ))}
+                  </div>
+                  <div className={styles.chatWindow}>
+                    <div className={styles.chatHeader}>
+                      <div>
+                        <p className={styles.listTitle}>Volvo V70 2016</p>
+                        <p className={styles.listMetaMuted}>Köpare · 11:40</p>
+                      </div>
+                      <span className={styles.statusDot}>● Aktiv</span>
+                    </div>
+                    <div className={styles.chatBubbles}>
+                      <div className={`${styles.bubble} ${styles.bubbleIncoming}`}>
+                        <p>Hej! Finns bilen kvar?</p>
+                        <span className={styles.bubbleMeta}>11:41</span>
+                      </div>
+                      <div className={`${styles.bubble} ${styles.bubbleOutgoing}`}>
+                        <p>Ja, den finns kvar. Vill du boka visning i helgen?</p>
+                        <span className={styles.bubbleMeta}>11:42</span>
+                      </div>
+                      <div className={`${styles.bubble} ${styles.bubbleIncoming}`}>
+                        <p>Perfekt. Kan du skicka fler bilder på interiören?</p>
+                        <span className={styles.bubbleMeta}>11:43</span>
+                      </div>
+                    </div>
+                    <div className={styles.chatInputRow}>
+                      <div className={styles.attachButtons}>
+                        <button className={styles.attachButton} aria-label="Öppna kamera">
+                          📷
+                        </button>
+                        <button className={styles.attachButton} aria-label="Ladda upp fil">
+                          📎
+                        </button>
+                      </div>
+                      <input className={styles.chatInput} placeholder="Skriv ett meddelande..." />
+                      <button className={styles.sendButton}>Skicka</button>
+                    </div>
                   </div>
                 </div>
               </div>
             )}
+            {activePanel === "new" && (
+              <div className={styles.dashboardCard}>
+                <p className={styles.overtitle}>Ny annons (stub)</p>
+                <p className={styles.body}>Här kommer skapa-annons-formen när vi kopplar på.</p>
+              </div>
+            )}
+            {activePanel === "favorites" && (
+              <div className={styles.dashboardCard}>
+                <p className={styles.overtitle}>Favoriter</p>
+                <ul className={styles.listSimple}>
+                  <li>Volvo V70 2016</li>
+                  <li>Elcykel pendling</li>
+                  <li>PlayStation 5</li>
+                </ul>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
-            <div className={styles.actions}>
-              <button className={styles.primaryButton}>Publicera</button>
-              <p className={styles.micro}>Utkast sparas automatiskt. Live i 90 dagar.</p>
-            </div>
-          </section>
-
-          <section className={`${styles.card} ${styles.countyCard}`}>
-            <div className={styles.cardHeader}>
-              <h2 className={styles.heading2}>Välj län</h2>
-            </div>
-            <div className={styles.countyList}>
-              {counties.map((county) => (
-                <button
-                  key={county}
-                  className={styles.countyRow}
-                  onClick={() => setSelectedCounty(county)}
-                >
-                  {county}
-                </button>
-              ))}
-            </div>
-          </section>
-        </main>
+      {isLoggedIn && (
+        <nav className={styles.mobileNav}>
+          <button
+            className={activePanel === "dashboard" ? styles.navActive : ""}
+            onClick={() => setActivePanel("dashboard")}
+          >
+            Mina sidor
+          </button>
+          <button
+            className={activePanel === "messages" ? styles.navActive : ""}
+            onClick={() => setActivePanel("messages")}
+          >
+            Meddelanden
+          </button>
+          <button
+            className={activePanel === "new" ? styles.navActive : ""}
+            onClick={() => setActivePanel("new")}
+          >
+            Ny annons
+          </button>
+          <button
+            className={activePanel === "favorites" ? styles.navActive : ""}
+            onClick={() => setActivePanel("favorites")}
+          >
+            Favoriter
+          </button>
+          <button
+            className={activePanel === "browse" ? styles.navActive : ""}
+            onClick={() => setActivePanel("browse")}
+          >
+            Sök
+          </button>
+        </nav>
       )}
 
       <footer className={styles.footer}>
@@ -718,100 +1282,6 @@ export default function Home() {
           <span>Byggd för hög trafik med edge-cache och typo-tolerant sök.</span>
         </div>
       </footer>
-
-      {selectedListing && (
-        <div className={styles.modalOverlay} role="dialog" aria-modal="true">
-          <div className={styles.modalCard}>
-            <div className={styles.modalHeader}>
-              <div>
-                <p className={styles.overtitle}>{selectedCounty || "Län"}</p>
-                <h3 className={styles.heading3}>{selectedListing.title}</h3>
-                <p className={styles.listMeta}>
-                  {selectedListing.meta} • {selectedListing.date} • {selectedListing.seller}
-                  {saleType === "kopes" ? " • Köpes" : ""}
-                </p>
-              </div>
-              <div className={styles.modalHeaderActions}>
-                <button
-                  className={`${styles.favButton} ${waitlist.has(selectedListing.title) ? styles.favButtonActive : ""}`}
-                  onClick={() => toggleWaitlist(selectedListing.title)}
-                >
-                  {waitlist.has(selectedListing.title) ? "Favorit ✓" : "Favorit"}
-                </button>
-                <button
-                  className={styles.modalClose}
-                  onClick={() => {
-                    setSelectedListing(null);
-                    setShowReply(false);
-                  }}
-                >
-                  Stäng
-                </button>
-              </div>
-            </div>
-            <div className={styles.modalBody}>
-              <div className={styles.modalThumb}>
-                <Image
-                  src={selectedListing.image}
-                  alt={selectedListing.title}
-                  fill
-                  sizes="(max-width: 700px) 100vw, 50vw"
-                />
-              </div>
-              <div className={styles.modalContent}>
-                <p className={styles.body}>
-                  Exempeldescription: Här kan vi visa attribut, kontaktinfo och snabb-knappar för
-                  meddelande. I riktiga vyn kommer schema-specifika fält in här.
-                </p>
-                <p className={styles.listPrice}>{selectedListing.price}</p>
-              </div>
-            </div>
-            <div className={styles.modalActions}>
-              {!showReply && (
-                <button className={styles.primaryButton} onClick={() => setShowReply(true)}>
-                  Kontakta säljare
-                </button>
-              )}
-            </div>
-
-            {showReply && (
-              <div className={styles.replyPanel}>
-                <div className={styles.replyHeader}>
-                  <p className={styles.overtitle}>Meddela säljaren</p>
-                </div>
-                <div className={styles.replyBody}>
-                  <div className={styles.replyMessage}>
-                    <textarea placeholder="Skriv ditt meddelande..." />
-                    <div className={styles.replyActions}>
-                      <button className={styles.primaryButton}>Skicka</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className={styles.sellerStrip}>
-              {selectedListing.seller === "Företag" ? (
-                <>
-                  <p className={styles.overtitle}>Säljare</p>
-                  <p className={styles.listTitle}>Exempelbolaget AB</p>
-                  <p className={styles.listMeta}>Betyg: 4.6/5</p>
-                  <p className={styles.listMeta}>Hemsida: exempelbolaget.se</p>
-                  <p className={styles.listMeta}>Telefon: 08-123 45 67</p>
-                  <p className={styles.listMeta}>Adress: Sveavägen 12, Stockholm</p>
-                </>
-              ) : (
-                <>
-                  <p className={styles.overtitle}>Säljare</p>
-                  <p className={styles.listTitle}>Alex, privat</p>
-                  <p className={styles.listMeta}>Medlem sedan 2021</p>
-                  <p className={styles.listMeta}>Betyg: 4.8/5</p>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

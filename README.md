@@ -30,6 +30,18 @@ Marketplace challenger for Sweden with mobile-first UX, fast browsing, and a sca
 - Listings auto-expire after 90 days; background job sweeps and updates search index.
 - Moderate flow: draft -> pending -> active -> expired/rejected.
 
+## Delat web + admin och framtida separation
+- Delade paket blueprint ligger i `packages/` (`types`, `api` mock). Webben använder just nu motsvarande filer i `apps/web/src/lib/*` för att slippa turbopack-strul med symlänkar. När vi vill separera, peka web/admin mot `packages/` eller publicera dem.
+- Admin ligger just nu som `apps/web/src/app/admin` men är byggd så den kan flyttas ut. När du separerar:
+  1) Flytta `apps/web/src/app/admin` till egen app/repo.
+  2) Behåll/bär med `packages/` (eller publicera dem) och peka båda apparna mot samma backend.
+  3) Sätt rollbaserad auth i backend; fronten ska bara visa/gömma.
+  4) Uppdatera env/URL för admin i egen deployment.
+- Path aliases för delade paket finns i `apps/web/tsconfig.json` och `next.config.ts` har `externalDir: true` för imports utanför app-mappen.
+
+## Status & plan
+Se `docs/state.md` för en uppdaterad översikt av målbild, vad som är byggt, teknikval och nästa steg (API-stub, validering mot kategoriregler, auth m.m.).
+
 ## Köra lokalt (tidig skeleton)
 - Starta Postgres + Typesense: `docker-compose up -d`.
 - Web: `cd apps/web && npm run dev` (läs `.env.local.example`).

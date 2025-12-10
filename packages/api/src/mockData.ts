@@ -4,10 +4,17 @@ export const mockCategories: Category[] = [
   {
     value: "fordon",
     label: "Fordon",
-    filters: [
+    createFields: [
       { type: "select", label: "Underkategori", options: ["Bilar", "MC", "Båt"] },
       { type: "range", label: "Årsmodell", min: "2000", max: "2024" },
-      { type: "range", label: "Miltal", min: "0", max: "30 000" },
+      { type: "range", label: "Miltal", min: "0", max: "30 000", ui: "slider" },
+      { type: "select", label: "Drivmedel", options: ["Bensin", "Diesel", "Hybrid", "El"] },
+      { type: "select", label: "Växellåda", options: ["Manuell", "Automat"] },
+    ],
+    searchFilters: [
+      { type: "select", label: "Underkategori", options: ["Bilar", "MC", "Båt"] },
+      { type: "range", label: "Årsmodell", min: "2000", max: "2024" },
+      { type: "range", label: "Miltal", min: "0", max: "30 000", ui: "number" },
       { type: "select", label: "Drivmedel", options: ["Bensin", "Diesel", "Hybrid", "El"] },
       { type: "select", label: "Växellåda", options: ["Manuell", "Automat"] },
     ],
@@ -15,7 +22,12 @@ export const mockCategories: Category[] = [
   {
     value: "elektronik",
     label: "Elektronik",
-    filters: [
+    createFields: [
+      { type: "select", label: "Typ", options: ["Laptop", "Mobil", "TV", "Spelkonsol"] },
+      { type: "select", label: "Skick", options: ["Nyskick", "Bra", "Använt"] },
+      { type: "range", label: "Pris", min: "500", max: "30 000" },
+    ],
+    searchFilters: [
       { type: "select", label: "Typ", options: ["Laptop", "Mobil", "TV", "Spelkonsol"] },
       { type: "select", label: "Skick", options: ["Nyskick", "Bra", "Använt"] },
       { type: "range", label: "Pris", min: "500", max: "30 000" },
@@ -24,7 +36,12 @@ export const mockCategories: Category[] = [
   {
     value: "hem",
     label: "Hem & möbler",
-    filters: [
+    createFields: [
+      { type: "select", label: "Typ", options: ["Soffor", "Bord", "Stolar", "Säng"] },
+      { type: "select", label: "Material", options: ["Trä", "Tyg", "Läder"] },
+      { type: "range", label: "Pris", min: "200", max: "20 000" },
+    ],
+    searchFilters: [
       { type: "select", label: "Typ", options: ["Soffor", "Bord", "Stolar", "Säng"] },
       { type: "select", label: "Material", options: ["Trä", "Tyg", "Läder"] },
       { type: "range", label: "Pris", min: "200", max: "20 000" },

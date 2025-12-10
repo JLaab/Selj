@@ -82,7 +82,8 @@ export default function AdminPage() {
   const [createErrors, setCreateErrors] = useState<string[]>([]);
   const [categoryForm, setCategoryForm] = useState({ value: "", label: "", parentValue: "" });
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
-  const [filterDrafts, setFilterDrafts] = useState<FilterDraft[]>([]);
+  const [createDrafts, setCreateDrafts] = useState<FilterDraft[]>([]);
+  const [searchDrafts, setSearchDrafts] = useState<FilterDraft[]>([]);
   const [categoryErrors, setCategoryErrors] = useState<string[]>([]);
   const [categorySuccess, setCategorySuccess] = useState<string>("");
   const [isSavingCategory, setIsSavingCategory] = useState(false);
@@ -125,7 +126,8 @@ export default function AdminPage() {
   const resetCategoryForm = useCallback(() => {
     setEditingCategory(null);
     setCategoryForm({ value: "", label: "", parentValue: "" });
-    setFilterDrafts([]);
+    setCreateDrafts([]);
+    setSearchDrafts([]);
     setCategoryErrors([]);
     setCategorySuccess("");
   }, []);
@@ -133,14 +135,23 @@ export default function AdminPage() {
   const startEditCategory = (cat: Category) => {
     setEditingCategory(cat.value);
     setCategoryForm({ value: cat.value, label: cat.label, parentValue: cat.parentValue || "" });
-    setFilterDrafts(cat.filters.map(filterToDraft));
+    const createFields = cat.createFields ?? cat.filters ?? [];
+    const searchFilters = cat.searchFilters ?? cat.filters ?? [];
+    setCreateDrafts(createFields.map(filterToDraft));
+    setSearchDrafts(searchFilters.map(filterToDraft));
     setCategoryErrors([]);
     setCategorySuccess("");
     setShowCategoryForm(true);
   };
 
-  const addFilterDraft = (draft?: Partial<FilterDraft>) => {
-    setFilterDrafts((prev) => [
+  const getDraftState = (kind: "create" | "search") =>
+    kind === "create"
+      ? [createDrafts, setCreateDrafts] as const
+      : [searchDrafts, setSearchDrafts] as const;
+
+  const addFilterDraft = (kind: "create" | "search", draft?: Partial<FilterDraft>) => {
+    const [, setDrafts] = getDraftState(kind);
+    setDrafts((prev) => [
       ...prev,
       {
         id: createDraftId(),
@@ -163,8 +174,9 @@ export default function AdminPage() {
     ]);
   };
 
-  const updateFilterDraft = (id: string, patch: Partial<FilterDraft>) => {
-    setFilterDrafts((prev) =>
+  const updateFilterDraft = (kind: "create" | "search", id: string, patch: Partial<FilterDraft>) => {
+    const [, setDrafts] = getDraftState(kind);
+    setDrafts((prev) =>
       prev.map((f) => {
         if (f.id !== id) return f;
         const next: FilterDraft = { ...f, ...patch };
@@ -177,8 +189,7 @@ export default function AdminPage() {
           } else {
             next.min = undefined;
             next.max = undefined;
-            next.options =
-              patch.options ?? f.options ?? ["Alternativ 1", "Alternativ 2"];
+            next.options = patch.options ?? f.options ?? ["Alternativ 1", "Alternativ 2"];
             next.ui = patch.type === "chip" ? "chip" : "dropdown";
           }
         }
@@ -187,16 +198,21 @@ export default function AdminPage() {
     );
   };
 
-  const removeFilterDraft = (id: string) => {
-    setFilterDrafts((prev) => prev.filter((f) => f.id !== id));
+  const removeFilterDraft = (kind: "create" | "search", id: string) => {
+    const [, setDrafts] = getDraftState(kind);
+    setDrafts((prev) => prev.filter((f) => f.id !== id));
   };
 
-  const updateFilterOptions = (id: string, value: string) => {
+  const updateFilterOptions = (kind: "create" | "search", id: string, value: string) => {
     const options = value
       .split(",")
       .map((o) => o.trim())
       .filter(Boolean);
-    updateFilterDraft(id, { options });
+    updateFilterDraft(kind, id, { options });
+  };
+
+  const copyCreateToSearch = () => {
+    setSearchDrafts(createDrafts.map((d) => ({ ...d, id: createDraftId() })));
   };
   const [newListing, setNewListing] = useState({
     title: "",
@@ -313,7 +329,9 @@ export default function AdminPage() {
       }
     }
     const selectedFilters =
-      categories.find((c) => c.value === newListing.category)?.filters ?? [];
+      categories.find((c) => c.value === newListing.category)?.createFields ??
+      categories.find((c) => c.value === newListing.category)?.filters ??
+      [];
     selectedFilters.forEach((f) => {
       if (f.required) {
         if (f.type === "range") {
@@ -376,20 +394,37 @@ export default function AdminPage() {
   const onSaveCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     const errors: string[] = [];
-      const label = categoryForm.label.trim();
-      const parentValue = categoryForm.parentValue.trim();
+    const label = categoryForm.label.trim();
+    const parentValue = categoryForm.parentValue.trim();
     const value = editingCategory || slugifyLabel(label);
-    const activeDrafts = filterDrafts.filter((draft) => {
+    const activeCreate = createDrafts.filter((draft) => {
+      const hasOptions = (draft.options?.length ?? 0) > 0;
+      return draft.label.trim().length > 0 || hasOptions || draft.min || draft.max;
+    });
+    const activeSearch = searchDrafts.filter((draft) => {
       const hasOptions = (draft.options?.length ?? 0) > 0;
       return draft.label.trim().length > 0 || hasOptions || draft.min || draft.max;
     });
     if (!label) errors.push("Kategorinamn krävs");
     if (!value) errors.push("Kunde inte skapa slug från namnet");
     if (parentValue && parentValue === value) errors.push("Förälder kan inte vara samma som slug");
-    activeDrafts.forEach((draft, idx) => {
+    activeCreate.forEach((draft, idx) => {
       const labelText = draft.label.trim() || `Filter ${idx + 1}`;
       if (!draft.label.trim()) {
         errors.push(`${labelText}: lägg till label (visas i UI)`);
+      }
+      if (draft.type === "range") {
+        if (!draft.min || !draft.max) {
+          errors.push(`${labelText}: min och max krävs för slider/nummer`);
+        }
+      } else if (!draft.options || draft.options.length === 0) {
+        errors.push(`${labelText}: lägg till alternativ (kommaseparerat)`);
+      }
+    });
+    activeSearch.forEach((draft, idx) => {
+      const labelText = draft.label.trim() || `Sökfilter ${idx + 1}`;
+      if (!draft.label.trim()) {
+        errors.push(`${labelText}: lägg till label`);
       }
       if (draft.type === "range") {
         if (!draft.min || !draft.max) {
@@ -404,9 +439,8 @@ export default function AdminPage() {
       setCategorySuccess("");
       return;
     }
-    const filters = activeDrafts
-      .map(draftToFilter)
-      .filter((f): f is FilterOption => Boolean(f));
+    const createFields = activeCreate.map(draftToFilter).filter((f): f is FilterOption => Boolean(f));
+    const searchFilters = activeSearch.map(draftToFilter).filter((f): f is FilterOption => Boolean(f));
     setCategoryErrors([]);
     setIsSavingCategory(true);
     setCategorySuccess("");
@@ -417,7 +451,8 @@ export default function AdminPage() {
         body: JSON.stringify({
           value,
           label,
-          filters,
+          createFields,
+          searchFilters,
           parentValue: parentValue || undefined,
         }),
       });
@@ -435,8 +470,11 @@ export default function AdminPage() {
         label,
         parentValue,
       });
-      if (data.filters) {
-        setFilterDrafts(data.filters.map(filterToDraft));
+      if (data.createFields) {
+        setCreateDrafts(data.createFields.map(filterToDraft));
+      }
+      if (data.searchFilters) {
+        setSearchDrafts(data.searchFilters.map(filterToDraft));
       }
     } catch (err) {
       setCategoryErrors(["Tekniskt fel vid sparande av kategori"]);
@@ -475,7 +513,10 @@ export default function AdminPage() {
   const startSubcategory = (parent: Category) => {
     setEditingCategory(null);
     setCategoryForm({ value: "", label: "", parentValue: parent.value });
-    setFilterDrafts(parent.filters.map(filterToDraft));
+    const createFields = parent.createFields ?? parent.filters ?? [];
+    const searchFilters = parent.searchFilters ?? parent.filters ?? [];
+    setCreateDrafts(createFields.map(filterToDraft));
+    setSearchDrafts(searchFilters.map(filterToDraft));
     setCategoryErrors([]);
     setCategorySuccess("");
     setShowCategoryForm(true);
@@ -535,7 +576,12 @@ export default function AdminPage() {
               kunna flyttas ut.
             </p>
           </div>
-          <div className={styles.badge}>Roll: admin</div>
+          <div className={styles.actions}>
+            <a className={styles.adminToggle} href="/">
+              Till webbvyn
+            </a>
+            <div className={styles.badge}>Roll: admin</div>
+          </div>
         </header>
 
         {tab === "dashboard" && (
@@ -728,9 +774,9 @@ export default function AdminPage() {
                   })}
                 </select>
               </label>
-              {categories
-                .find((c) => c.value === newListing.category)
-                ?.filters.map((filter) => {
+              {(categories.find((c) => c.value === newListing.category)?.createFields ??
+                categories.find((c) => c.value === newListing.category)?.filters ??
+                [])?.map((filter) => {
                   if (filter.type === "select") {
                     return (
                       <label key={filter.label} className={styles.field}>
@@ -929,86 +975,130 @@ export default function AdminPage() {
               </div>
             </div>
             <div className={styles.list}>
-              {topCategories.map((cat) => (
-                <div key={cat.value} className={styles.listGroup}>
-                  <div className={styles.listRow}>
-                    <div className={styles.listRowInfo}>
-                      <p className={styles.title}>{cat.label}</p>
-                      <p className={styles.meta}>
-                        {cat.filters.length} filter • slug: {cat.value}
-                      </p>
-                      <div className={styles.filterPills}>
-                        {cat.filters.map((f) => (
-                          <span key={f.label} className={styles.pill}>
-                            {f.label}
-                            <span className={styles.pillMeta}>
-                              {f.type === "range"
-                                ? f.ui === "slider"
-                                  ? "slider"
-                                  : "min/max"
-                                : f.type === "chip"
-                                ? "chips"
-                                : "dropdown"}
+              {topCategories.map((cat) => {
+                const createFields = cat.createFields ?? cat.filters ?? [];
+                const searchFilters = cat.searchFilters ?? cat.filters ?? [];
+                return (
+                  <div key={cat.value} className={styles.listGroup}>
+                    <div className={styles.listRow}>
+                      <div className={styles.listRowInfo}>
+                        <p className={styles.title}>{cat.label}</p>
+                        <p className={styles.meta}>
+                          {createFields.length} publiceringsfält • {searchFilters.length} sökfilter • slug: {cat.value}
+                        </p>
+                        <div className={styles.filterPills}>
+                          {createFields.map((f) => (
+                            <span key={f.label} className={styles.pill}>
+                              {f.label}
+                              <span className={styles.pillMeta}>
+                                {f.type === "range"
+                                  ? f.ui === "slider"
+                                    ? "slider"
+                                    : "min/max"
+                                  : f.type === "chip"
+                                  ? "chips"
+                                  : "dropdown"}
+                              </span>
                             </span>
-                          </span>
-                        ))}
+                          ))}
+                        </div>
+                        {searchFilters.length > 0 && (
+                          <div className={styles.filterPills}>
+                            {searchFilters.map((f) => (
+                              <span key={f.label} className={styles.pillAlt}>
+                                {f.label}
+                                <span className={styles.pillMeta}>
+                                  {f.type === "range"
+                                    ? f.ui === "slider"
+                                      ? "slider"
+                                      : "min/max"
+                                    : f.type === "chip"
+                                    ? "chips"
+                                    : "dropdown"}
+                                </span>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className={styles.actions}>
+                        <button className={styles.quickAction} onClick={() => startSubcategory(cat)}>
+                          <span className={styles.quickTitle}>Ny underkategori</span>
+                          <span className={styles.micro}>Kopierar fälten, välj nytt namn</span>
+                        </button>
+                        <button className={styles.ghost} onClick={() => startEditCategory(cat)}>
+                          Redigera
+                        </button>
+                        <button className={styles.danger} onClick={() => onDeleteCategory(cat.value)}>
+                          Ta bort
+                        </button>
                       </div>
                     </div>
-                    <div className={styles.actions}>
-                      <button className={styles.quickAction} onClick={() => startSubcategory(cat)}>
-                        <span className={styles.quickTitle}>Ny underkategori</span>
-                        <span className={styles.micro}>Kopierar fälten, välj nytt namn</span>
-                      </button>
-                      <button className={styles.ghost} onClick={() => startEditCategory(cat)}>
-                        Redigera
-                      </button>
-                      <button className={styles.danger} onClick={() => onDeleteCategory(cat.value)}>
-                        Ta bort
-                      </button>
-                    </div>
-                  </div>
-                  {childrenByParent[cat.value]?.length ? (
-                    <div className={styles.subList}>
-                      {childrenByParent[cat.value].map((child) => (
-                        <div key={child.value} className={styles.listRow}>
-                          <div className={styles.listRowInfo}>
-                            <p className={styles.title}>
-                              {child.label} <span className={styles.micro}>({cat.label})</span>
-                            </p>
-                            <p className={styles.meta}>
-                              {child.filters.length} filter • slug: {child.value}
-                            </p>
-                            <div className={styles.filterPills}>
-                              {child.filters.map((f) => (
-                                <span key={f.label} className={styles.pill}>
-                                  {f.label}
-                                  <span className={styles.pillMeta}>
-                                    {f.type === "range"
-                                      ? f.ui === "slider"
-                                        ? "slider"
-                                        : "min/max"
-                                      : f.type === "chip"
-                                      ? "chips"
-                                      : "dropdown"}
-                                  </span>
-                                </span>
-                              ))}
+                    {childrenByParent[cat.value]?.length ? (
+                      <div className={styles.subList}>
+                        {childrenByParent[cat.value].map((child) => {
+                          const childCreate = child.createFields ?? child.filters ?? [];
+                          const childSearch = child.searchFilters ?? child.filters ?? [];
+                          return (
+                            <div key={child.value} className={styles.listRow}>
+                              <div className={styles.listRowInfo}>
+                                <p className={styles.title}>
+                                  {child.label} <span className={styles.micro}>({cat.label})</span>
+                                </p>
+                                <p className={styles.meta}>
+                                  {childCreate.length} publiceringsfält • {childSearch.length} sökfilter • slug: {child.value}
+                                </p>
+                                <div className={styles.filterPills}>
+                                  {childCreate.map((f) => (
+                                    <span key={f.label} className={styles.pill}>
+                                      {f.label}
+                                      <span className={styles.pillMeta}>
+                                        {f.type === "range"
+                                          ? f.ui === "slider"
+                                            ? "slider"
+                                            : "min/max"
+                                          : f.type === "chip"
+                                          ? "chips"
+                                          : "dropdown"}
+                                      </span>
+                                    </span>
+                                  ))}
+                                </div>
+                                {childSearch.length > 0 && (
+                                  <div className={styles.filterPills}>
+                                    {childSearch.map((f) => (
+                                      <span key={f.label} className={styles.pillAlt}>
+                                        {f.label}
+                                        <span className={styles.pillMeta}>
+                                          {f.type === "range"
+                                            ? f.ui === "slider"
+                                              ? "slider"
+                                              : "min/max"
+                                            : f.type === "chip"
+                                            ? "chips"
+                                            : "dropdown"}
+                                        </span>
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                              <div className={styles.actions}>
+                                <button className={styles.ghost} onClick={() => startEditCategory(child)}>
+                                  Redigera
+                                </button>
+                                <button className={styles.danger} onClick={() => onDeleteCategory(child.value)}>
+                                  Ta bort
+                                </button>
+                              </div>
                             </div>
-                          </div>
-                          <div className={styles.actions}>
-                            <button className={styles.ghost} onClick={() => startEditCategory(child)}>
-                              Redigera
-                            </button>
-                            <button className={styles.danger} onClick={() => onDeleteCategory(child.value)}>
-                              Ta bort
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-              ))}
+                          );
+                        })}
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
               {categories.length === 0 && <p className={styles.meta}>Inga kategorier ännu.</p>}
             </div>
             {showCategoryForm && (
@@ -1048,128 +1138,267 @@ export default function AdminPage() {
                       }
                     />
                   </label>
-                  <div className={`${styles.fullRow} ${styles.presetRow}`}>
-                    <span className={styles.meta}>Snabbval</span>
-                    {filterPresets.map((preset) => (
-                      <button
-                        type="button"
-                        key={preset.label}
-                        className={styles.quickAction}
-                        onClick={() => addFilterDraft(preset.draft)}
-                      >
-                        <span className={styles.quickTitle}>{preset.label}</span>
-                        <span className={styles.micro}>{preset.hint}</span>
+                  <div className={styles.fullRow}>
+                    <p className={styles.overtitle}>Fält vid publicering</p>
+                    <div className={styles.presetRow}>
+                      <span className={styles.meta}>Snabbval</span>
+                      {filterPresets.map((preset) => (
+                        <button
+                          type="button"
+                          key={preset.label}
+                          className={styles.quickAction}
+                          onClick={() => addFilterDraft("create", preset.draft)}
+                        >
+                          <span className={styles.quickTitle}>{preset.label}</span>
+                          <span className={styles.micro}>{preset.hint}</span>
+                        </button>
+                      ))}
+                      <button type="button" className={styles.ghost} onClick={() => addFilterDraft("create")}>
+                        Tomt fält
                       </button>
-                    ))}
-                    <button type="button" className={styles.ghost} onClick={() => addFilterDraft()}>
-                      Tomt fält
-                    </button>
-                  </div>
-                  <div className={`${styles.fullRow} ${styles.filterBuilder}`}>
-                    {filterDrafts.length === 0 && (
-                      <p className={styles.meta}>
-                        Inga filter ännu. Lägg till underkategori, slider eller chips ovan.
-                      </p>
-                    )}
-                    {filterDrafts.map((filter) => (
-                      <div key={filter.id} className={styles.filterCard}>
-                        <div className={styles.filterCardHeader}>
-                          <label className={styles.field}>
-                            <span>Fältnamn</span>
-                            <input
-                              value={filter.label}
-                              onChange={(e) =>
-                                updateFilterDraft(filter.id, { label: e.target.value })
-                              }
-                              placeholder="ex. Miltal eller Drivmedel"
-                            />
-                          </label>
-                          <div className={styles.filterMetaRow}>
-                            <label className={styles.smallLabel}>Typ</label>
-                            <select
-                              value={filter.type}
-                              onChange={(e) =>
-                                updateFilterDraft(filter.id, {
-                                  type: e.target.value as FilterOption["type"],
-                                })
-                              }
-                            >
-                              <option value="select">Dropdown</option>
-                              <option value="chip">Chips / snabbval</option>
-                              <option value="range">Range (slider/min-max)</option>
-                            </select>
-                            <label className={styles.checkboxLabel}>
+                    </div>
+                    <div className={styles.filterBuilder}>
+                      {createDrafts.length === 0 && (
+                        <p className={styles.meta}>
+                          Inga fält ännu. Lägg till underkategori, slider eller chips ovan.
+                        </p>
+                      )}
+                      {createDrafts.map((filter) => (
+                        <div key={filter.id} className={styles.filterCard}>
+                          <div className={styles.filterCardHeader}>
+                            <label className={styles.field}>
+                              <span>Fältnamn</span>
                               <input
-                                type="checkbox"
-                                checked={filter.required}
+                                value={filter.label}
                                 onChange={(e) =>
-                                  updateFilterDraft(filter.id, { required: e.target.checked })
+                                  updateFilterDraft("create", filter.id, { label: e.target.value })
+                                }
+                                placeholder="ex. Miltal eller Drivmedel"
+                              />
+                            </label>
+                            <div className={styles.filterMetaRow}>
+                              <label className={styles.smallLabel}>Typ</label>
+                              <select
+                                value={filter.type}
+                                onChange={(e) =>
+                                  updateFilterDraft("create", filter.id, {
+                                    type: e.target.value as FilterOption["type"],
+                                  })
+                                }
+                              >
+                                <option value="select">Dropdown</option>
+                                <option value="chip">Chips / snabbval</option>
+                                <option value="range">Range (slider/min-max)</option>
+                              </select>
+                              <label className={styles.checkboxLabel}>
+                                <input
+                                  type="checkbox"
+                                  checked={filter.required}
+                                  onChange={(e) =>
+                                    updateFilterDraft("create", filter.id, {
+                                      required: e.target.checked,
+                                    })
+                                  }
+                                />
+                                Obligatoriskt
+                              </label>
+                            </div>
+                          </div>
+                          {filter.type === "range" ? (
+                            <div className={styles.inlineFields}>
+                              <input
+                                type="number"
+                                placeholder="Min (ex. 0)"
+                                value={filter.min ?? ""}
+                                onChange={(e) =>
+                                  updateFilterDraft("create", filter.id, { min: e.target.value })
                                 }
                               />
-                              Obligatoriskt
-                            </label>
-                          </div>
-                        </div>
-                        {filter.type === "range" ? (
-                          <div className={styles.inlineFields}>
-                            <input
-                              type="number"
-                              placeholder="Min (ex. 0)"
-                              value={filter.min ?? ""}
-                              onChange={(e) => updateFilterDraft(filter.id, { min: e.target.value })}
-                            />
-                            <input
-                              type="number"
-                              placeholder="Max (ex. 30000)"
-                              value={filter.max ?? ""}
-                              onChange={(e) => updateFilterDraft(filter.id, { max: e.target.value })}
-                            />
-                            <select
-                              value={filter.ui === "slider" ? "slider" : "number"}
-                              onChange={(e) =>
-                                updateFilterDraft(filter.id, {
-                                  ui: e.target.value as FilterOption["ui"],
-                                })
-                              }
-                            >
-                              <option value="slider">Slider (ett värde)</option>
-                              <option value="number">Min & max fält</option>
-                            </select>
-                          </div>
-                        ) : (
-                          <div className={styles.field}>
-                            <span>Alternativ (kommaseparerade)</span>
-                            <input
-                              value={(filter.options || []).join(", ")}
-                              onChange={(e) => updateFilterOptions(filter.id, e.target.value)}
-                              placeholder="ex. Bensin, Diesel, El"
-                            />
+                              <input
+                                type="number"
+                                placeholder="Max (ex. 30000)"
+                                value={filter.max ?? ""}
+                                onChange={(e) =>
+                                  updateFilterDraft("create", filter.id, { max: e.target.value })
+                                }
+                              />
+                              <select
+                                value={filter.ui === "slider" ? "slider" : "number"}
+                                onChange={(e) =>
+                                  updateFilterDraft("create", filter.id, {
+                                    ui: e.target.value as FilterOption["ui"],
+                                  })
+                                }
+                              >
+                                <option value="slider">Slider (ett värde)</option>
+                                <option value="number">Min & max fält</option>
+                              </select>
+                            </div>
+                          ) : (
+                            <div className={styles.field}>
+                              <span>Alternativ (kommaseparerade)</span>
+                              <input
+                                value={(filter.options || []).join(", ")}
+                                onChange={(e) => updateFilterOptions("create", filter.id, e.target.value)}
+                                placeholder="ex. Bensin, Diesel, El"
+                              />
+                              <span className={styles.meta}>
+                                Visas som {filter.type === "chip" ? "chips/toggles" : "dropdown"}.
+                              </span>
+                            </div>
+                          )}
+                          <div className={styles.filterFooter}>
                             <span className={styles.meta}>
-                              Visas som {filter.type === "chip" ? "chips/toggles" : "dropdown"}.
+                              Form:{" "}
+                              {filter.type === "range"
+                                ? filter.ui === "slider"
+                                  ? "Slider (ett värde)"
+                                  : "Min & max-fält"
+                                : filter.type === "chip"
+                                ? "Klickbara taggar"
+                                : "Dropdown"}
                             </span>
+                            <button
+                              type="button"
+                              className={styles.danger}
+                              onClick={() => removeFilterDraft("create", filter.id)}
+                            >
+                              Ta bort fält
+                            </button>
                           </div>
-                        )}
-                        <div className={styles.filterFooter}>
-                          <span className={styles.meta}>
-                            Sök-UI:{" "}
-                            {filter.type === "range"
-                              ? filter.ui === "slider"
-                                ? "Slider med min/max (t.ex. miltal 0–30000)"
-                                : "Två nummerfält för min/max"
-                              : filter.type === "chip"
-                              ? "Klickbara taggar"
-                              : "Dropdown"}
-                          </span>
-                          <button
-                            type="button"
-                            className={styles.danger}
-                            onClick={() => removeFilterDraft(filter.id)}
-                          >
-                            Ta bort fält
-                          </button>
                         </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className={styles.fullRow}>
+                    <div className={styles.filterHeaderRow}>
+                      <p className={styles.overtitle}>Filter vid sök</p>
+                      <div className={styles.actions}>
+                        <button type="button" className={styles.ghost} onClick={copyCreateToSearch}>
+                          Kopiera från publicering
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.ghost}
+                          onClick={() => addFilterDraft("search")}
+                        >
+                          Tomt filter
+                        </button>
                       </div>
-                    ))}
+                    </div>
+                    <div className={styles.presetRow}>
+                      <span className={styles.meta}>Snabbval</span>
+                      {filterPresets.map((preset) => (
+                        <button
+                          type="button"
+                          key={preset.label}
+                          className={styles.quickAction}
+                          onClick={() => addFilterDraft("search", preset.draft)}
+                        >
+                          <span className={styles.quickTitle}>{preset.label}</span>
+                          <span className={styles.micro}>{preset.hint}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <div className={styles.filterBuilder}>
+                      {searchDrafts.length === 0 && (
+                        <p className={styles.meta}>Inga filter ännu. Lägg till eller kopiera ovan.</p>
+                      )}
+                      {searchDrafts.map((filter) => (
+                        <div key={filter.id} className={styles.filterCard}>
+                          <div className={styles.filterCardHeader}>
+                            <label className={styles.field}>
+                              <span>Fältnamn</span>
+                              <input
+                                value={filter.label}
+                                onChange={(e) =>
+                                  updateFilterDraft("search", filter.id, { label: e.target.value })
+                                }
+                                placeholder="ex. Miltal eller Drivmedel"
+                              />
+                            </label>
+                            <div className={styles.filterMetaRow}>
+                              <label className={styles.smallLabel}>Typ</label>
+                              <select
+                                value={filter.type}
+                                onChange={(e) =>
+                                  updateFilterDraft("search", filter.id, {
+                                    type: e.target.value as FilterOption["type"],
+                                  })
+                                }
+                              >
+                                <option value="select">Dropdown</option>
+                                <option value="chip">Chips / snabbval</option>
+                                <option value="range">Range (slider/min-max)</option>
+                              </select>
+                            </div>
+                          </div>
+                          {filter.type === "range" ? (
+                            <div className={styles.inlineFields}>
+                              <input
+                                type="number"
+                                placeholder="Min (ex. 0)"
+                                value={filter.min ?? ""}
+                                onChange={(e) =>
+                                  updateFilterDraft("search", filter.id, { min: e.target.value })
+                                }
+                              />
+                              <input
+                                type="number"
+                                placeholder="Max (ex. 30000)"
+                                value={filter.max ?? ""}
+                                onChange={(e) =>
+                                  updateFilterDraft("search", filter.id, { max: e.target.value })
+                                }
+                              />
+                              <select
+                                value={filter.ui === "slider" ? "slider" : "number"}
+                                onChange={(e) =>
+                                  updateFilterDraft("search", filter.id, {
+                                    ui: e.target.value as FilterOption["ui"],
+                                  })
+                                }
+                              >
+                                <option value="slider">Slider (ett värde)</option>
+                                <option value="number">Min & max fält</option>
+                              </select>
+                            </div>
+                          ) : (
+                            <div className={styles.field}>
+                              <span>Alternativ (kommaseparerade)</span>
+                              <input
+                                value={(filter.options || []).join(", ")}
+                                onChange={(e) => updateFilterOptions("search", filter.id, e.target.value)}
+                                placeholder="ex. Bensin, Diesel, El"
+                              />
+                              <span className={styles.meta}>
+                                Visas som {filter.type === "chip" ? "chips/toggles" : "dropdown"}.
+                              </span>
+                            </div>
+                          )}
+                          <div className={styles.filterFooter}>
+                            <span className={styles.meta}>
+                              Sökfilter:{" "}
+                              {filter.type === "range"
+                                ? filter.ui === "slider"
+                                  ? "Slider (ett värde)"
+                                  : "Min & max-fält"
+                                : filter.type === "chip"
+                                ? "Klickbara taggar"
+                                : "Dropdown"}
+                            </span>
+                            <button
+                              type="button"
+                              className={styles.danger}
+                              onClick={() => removeFilterDraft("search", filter.id)}
+                            >
+                              Ta bort filter
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                   <div className={styles.actionsRow}>
                     <button type="submit" className={styles.primary} disabled={isSavingCategory}>

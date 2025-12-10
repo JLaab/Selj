@@ -1,7 +1,14 @@
 import type { Category, FilterOption } from "./types";
 
-export function getFiltersForCategory(categories: Category[], value: string) {
-  return categories.find((c) => c.value === value)?.filters ?? [];
+export function getFieldsForCategory(
+  categories: Category[],
+  value: string,
+  kind: "create" | "search" = "create"
+) {
+  const cat = categories.find((c) => c.value === value);
+  if (!cat) return [];
+  if (kind === "search") return cat.searchFilters ?? cat.filters ?? cat.createFields ?? [];
+  return cat.createFields ?? cat.filters ?? cat.searchFilters ?? [];
 }
 
 export function validateAttributes(filters: FilterOption[], attributes: Record<string, string>) {

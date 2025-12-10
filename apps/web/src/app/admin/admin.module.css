@@ -91,6 +91,19 @@
   font-weight: 700;
 }
 
+.adminToggle {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .card,
 .cardAccent {
   border: 1px solid var(--color-border);
@@ -195,6 +208,14 @@
   border-radius: 10px;
   border: 1px solid var(--color-border);
   background: var(--color-surface-muted);
+  font-size: 13px;
+}
+
+.pillAlt {
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px dashed var(--color-border);
+  background: transparent;
   font-size: 13px;
 }
 
@@ -346,6 +367,13 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.filterHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .filterCard {

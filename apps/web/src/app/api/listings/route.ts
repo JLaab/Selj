@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "../_db";
 import type { Listing, ListingStatus } from "../../../lib/types";
-import { getFiltersForCategory, validateAttributes } from "../../../lib/attributeHelpers";
+import { getFieldsForCategory, validateAttributes } from "../../../lib/attributeHelpers";
 
 import { placeholderImage } from "../../../lib/placeholders";
 
@@ -11,8 +11,10 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const filters = body.category ? getFiltersForCategory(db.getCategories(), body.category) : [];
-  const validationErrors = validateAttributes(filters, body.attributes || {});
+  const createFields = body.category
+    ? getFieldsForCategory(db.getCategories(), body.category, "create")
+    : [];
+  const validationErrors = validateAttributes(createFields, body.attributes || {});
   if (!body.title || !body.price) {
     validationErrors.push("Titel och pris är obligatoriska");
   }

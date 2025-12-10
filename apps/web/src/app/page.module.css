@@ -72,6 +72,19 @@
   gap: 12px;
 }
 
+.adminToggle {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .iconButton {
   position: relative;
   border: 1px solid var(--color-border);

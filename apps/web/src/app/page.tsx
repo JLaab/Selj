@@ -173,7 +173,9 @@ export default function Home() {
 
   const getAttributeItems = (listing: Listing, onlyRequired = false) => {
     const filtersForListing =
-      categoriesState.find((c) => c.value === listing.category)?.filters ?? [];
+      categoriesState.find((c) => c.value === listing.category)?.createFields ??
+      categoriesState.find((c) => c.value === listing.category)?.filters ??
+      [];
     return filtersForListing
       .filter((f) => (onlyRequired ? f.required : true))
       .map((filter) => {
@@ -230,6 +232,9 @@ export default function Home() {
               <span className={styles.searchIcon}>🔍</span>
             </div>
           <div className={styles.topActions}>
+            <a className={styles.adminToggle} href="/admin">
+              Admin
+            </a>
             <button
               className={styles.linkButton}
               onClick={() => setIsLoggedIn((v) => !v)}
@@ -557,6 +562,9 @@ export default function Home() {
           <span className={styles.searchIcon}>🔍</span>
         </div>
         <div className={styles.topActions}>
+          <a className={styles.adminToggle} href="/admin">
+            Admin
+          </a>
           <button className={styles.iconButton} aria-label="Meddelanden">
             ✉️
             {unreadCount > 0 && <span className={styles.unreadBadge}>{unreadCount}</span>}
@@ -653,9 +661,9 @@ export default function Home() {
             {selectedCategory && (
           <div className={styles.filterBar}>
             <div className={styles.filterChips}>
-                  {categoriesState
-                    .find((cat) => cat.value === selectedCategory)
-                    ?.filters.map((filter) => {
+                  {(categoriesState.find((cat) => cat.value === selectedCategory)?.searchFilters ??
+                    categoriesState.find((cat) => cat.value === selectedCategory)?.filters ??
+                    [])?.map((filter) => {
                       if (filter.type === "select") {
                         return (
                           <div key={filter.label} className={styles.filterField}>

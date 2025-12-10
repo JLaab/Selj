@@ -18,7 +18,10 @@ export interface Category {
   value: string;
   label: string;
   parentValue?: string;
-  filters: FilterOption[];
+  // legacy filters kept for backward compatibility
+  filters?: FilterOption[];
+  createFields?: FilterOption[];
+  searchFilters?: FilterOption[];
 }
 
 export interface Listing {

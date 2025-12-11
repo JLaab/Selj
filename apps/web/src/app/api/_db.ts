@@ -1,23 +1,81 @@
 import type { Category, Listing, ListingStatus } from "../../lib/types";
 import { mockCategories, mockListings } from "../../lib/mockData";
+import { promises as fs } from "fs";
+import path from "path";
 
-let listings: Listing[] = [...mockListings];
-let categories: Category[] = mockCategories.map((c) => ({
-  ...c,
-  createFields: c.createFields ?? c.filters ?? [],
-  searchFilters: c.searchFilters ?? c.filters ?? c.createFields ?? [],
-  filters: c.filters ?? c.createFields ?? c.searchFilters ?? [],
-}));
+const dataDir = path.join(process.cwd(), "data");
+const dataFile = path.join(dataDir, "db.json");
+
+type DataShape = {
+  listings: Listing[];
+  categories: Category[];
+};
+
+let loaded = false;
+let listings: Listing[] = [];
+let categories: Category[] = [];
+
+const normalizeCategory = (input: Category): Category => ({
+  ...input,
+  createFields: input.createFields ?? input.filters ?? [],
+  searchFilters: input.searchFilters ?? input.filters ?? input.createFields ?? [],
+  filters: input.filters ?? input.createFields ?? input.searchFilters ?? [],
+});
+
+const persist = async () => {
+  try {
+    await fs.mkdir(dataDir, { recursive: true });
+    await fs.writeFile(
+      dataFile,
+      JSON.stringify(
+        {
+          listings,
+          categories,
+        } satisfies DataShape,
+        null,
+        2
+      ),
+      "utf-8"
+    );
+  } catch (err) {
+    console.error("Could not persist data file", err);
+  }
+};
+
+const load = async () => {
+  if (loaded) return;
+  loaded = true;
+  try {
+    const raw = await fs.readFile(dataFile, "utf-8");
+    const parsed = JSON.parse(raw) as DataShape;
+    listings = parsed.listings ?? [];
+    categories = (parsed.categories ?? []).map(normalizeCategory);
+    return;
+  } catch {
+    // fall back to mock data
+    listings = [...mockListings];
+    categories = mockCategories.map(normalizeCategory);
+    await persist();
+  }
+};
 
 export const db = {
-  getListings: (): Listing[] => listings,
-  getCategories: (): Category[] => categories,
+  getListings: async (): Promise<Listing[]> => {
+    await load();
+    return listings;
+  },
+  getCategories: async (): Promise<Category[]> => {
+    await load();
+    return categories;
+  },
   createListing: (input: Listing) => {
     listings = [input, ...listings];
+    void persist();
     return input;
   },
   updateListingStatus: (id: string, status: ListingStatus) => {
     listings = listings.map((l) => (l.id === id ? { ...l, status } : l));
+    void persist();
   },
   createCategory: (input: Category) => {
     const normalized: Category = {
@@ -33,6 +91,7 @@ export const db = {
     } else {
       categories = [...categories, normalized];
     }
+    void persist();
     return normalized;
   },
   updateCategory: (value: string, input: Partial<Category>) => {
@@ -48,6 +107,7 @@ export const db = {
       value: input.value ?? categories[idx].value,
     };
     categories[idx] = updated;
+    void persist();
     return updated;
   },
   deleteCategory: (value: string) => {
@@ -60,6 +120,7 @@ export const db = {
       }
     });
     categories = categories.filter((c) => !toDelete.has(c.value));
+    void persist();
     return categories.length !== before;
   },
 };

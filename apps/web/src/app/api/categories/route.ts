@@ -48,7 +48,8 @@ const normalizeFilters = (
 };
 
 export async function GET() {
-  return NextResponse.json(db.getCategories());
+  const cats = await db.getCategories();
+  return NextResponse.json(cats);
 }
 
 export async function POST(request: Request) {
@@ -72,11 +73,12 @@ export async function POST(request: Request) {
     "Sök-filter"
   );
   errors.push(...createErrors, ...searchErrors);
-  if (db.getCategories().some((c) => c.value === value)) {
+  const existingCats = await db.getCategories();
+  if (existingCats.some((c) => c.value === value)) {
     errors.push("Kategori med samma value finns redan");
   }
   if (parentValue) {
-    const parentExists = db.getCategories().some((c) => c.value === parentValue);
+    const parentExists = existingCats.some((c) => c.value === parentValue);
     if (!parentExists) errors.push("Förälderkategori finns inte");
     if (parentValue === value) errors.push("Kategori kan inte vara förälder till sig själv");
   }
@@ -94,7 +96,8 @@ export async function PUT(request: Request) {
   if (!value) {
     return NextResponse.json({ errors: ["value krävs för att uppdatera"] }, { status: 400 });
   }
-  const existing = db.getCategories().find((c) => c.value === value);
+  const existingCats = await db.getCategories();
+  const existing = existingCats.find((c) => c.value === value);
   if (!existing) {
     return NextResponse.json({ errors: ["Kategorin finns inte"] }, { status: 404 });
   }
@@ -129,7 +132,7 @@ export async function PUT(request: Request) {
           { status: 400 }
         );
       }
-      const parentExists = db.getCategories().some((c) => c.value === parentValue);
+      const parentExists = existingCats.some((c) => c.value === parentValue);
       if (!parentExists) {
         return NextResponse.json({ errors: ["Förälderkategori finns inte"] }, { status: 400 });
       }

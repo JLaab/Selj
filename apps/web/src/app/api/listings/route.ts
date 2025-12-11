@@ -6,14 +6,14 @@ import { getFieldsForCategory, validateAttributes } from "../../../lib/attribute
 import { placeholderImage } from "../../../lib/placeholders";
 
 export async function GET() {
-  return NextResponse.json(db.getListings());
+  const lst = await db.getListings();
+  return NextResponse.json(lst);
 }
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const createFields = body.category
-    ? getFieldsForCategory(db.getCategories(), body.category, "create")
-    : [];
+  const categories = await db.getCategories();
+  const createFields = body.category ? getFieldsForCategory(categories, body.category, "create") : [];
   const validationErrors = validateAttributes(createFields, body.attributes || {});
   if (!body.title || !body.price) {
     validationErrors.push("Titel och pris är obligatoriska");

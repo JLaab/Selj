@@ -42,6 +42,7 @@ export default function Home() {
   >("browse");
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+  const [viewAllCounties, setViewAllCounties] = useState(false);
   const [waitlist, setWaitlist] = useState<Set<string>>(new Set());
   const [showReply, setShowReply] = useState(false);
   const [form, setForm] = useState({
@@ -105,7 +106,7 @@ export default function Home() {
     const q = searchTerm.trim();
     if (q) params.set("q", q);
     if (selectedCategory) params.set("category", selectedCategory);
-    if (selectedCounty) params.set("county", selectedCounty);
+    if (selectedCounty && !viewAllCounties) params.set("county", selectedCounty);
     const cleanFilters: Record<string, string> = {};
     Object.entries(filterValues).forEach(([key, val]) => {
       if (val !== undefined && val !== null && val !== "") {
@@ -132,7 +133,7 @@ export default function Home() {
         setIsSearching(false);
       }
     }
-  }, [filterValues, searchTerm, selectedCategory, selectedCounty]);
+  }, [filterValues, searchTerm, selectedCategory, selectedCounty, viewAllCounties]);
 
   useEffect(() => {
     const debounce = setTimeout(() => {
@@ -178,12 +179,15 @@ export default function Home() {
     return ordered;
   }, [childrenByParent, topCategories]);
 
-  const resetCounty = () => setSelectedCounty("");
+  const resetCounty = () => {
+    setSelectedCounty("");
+    setViewAllCounties(false);
+  };
   const selectListing = (item: Listing) => {
     setSelectedListing(item);
     setShowReply(false);
     setCurrentImageIdx(0);
-    if (item.county) setSelectedCounty(item.county);
+    if (item.county && !viewAllCounties) setSelectedCounty(item.county);
   };
 
   const sortedListings = useMemo(() => {
@@ -648,12 +652,12 @@ export default function Home() {
         </div>
       </header>
       {activePanel === "browse" ? (
-        selectedCounty ? (
+        selectedCounty || viewAllCounties ? (
           <section className={`${styles.card} ${styles.listView}`}>
             <div className={styles.listHeaderRow}>
               <div>
-                <p className={styles.overtitle}>Valt län</p>
-                <h2 className={styles.heading2}>{selectedCounty}</h2>
+                <p className={styles.overtitle}>{viewAllCounties ? "Visar alla län" : "Valt län"}</p>
+                <h2 className={styles.heading2}>{viewAllCounties ? "Alla annonser" : selectedCounty}</h2>
                 <p className={styles.body}>
                   {sortedListings.length} exempelannonser. Senaste överst när vi kopplar på riktiga
                   data. {isSearching ? "Söker..." : ""}
@@ -715,6 +719,11 @@ export default function Home() {
                 <button className={styles.linkButton} onClick={resetCounty}>
                   Byt län
                 </button>
+                {!viewAllCounties && (
+                  <button className={styles.linkButton} onClick={() => setViewAllCounties(true)}>
+                    Visa alla län
+                  </button>
+                )}
               </div>
             </div>
 
@@ -1055,11 +1064,26 @@ export default function Home() {
                   <button
                     key={county}
                     className={styles.countyRow}
-                    onClick={() => setSelectedCounty(county)}
+                    onClick={() => {
+                      setSelectedCounty(county);
+                      setViewAllCounties(false);
+                    }}
                   >
                     {county}
                   </button>
                 ))}
+              </div>
+              <div className={styles.actions}>
+                <button
+                  type="button"
+                  className={styles.linkButton}
+                  onClick={() => {
+                    setViewAllCounties(true);
+                    setSelectedCounty("");
+                  }}
+                >
+                  Visa alla län
+                </button>
               </div>
             </section>
           </main>

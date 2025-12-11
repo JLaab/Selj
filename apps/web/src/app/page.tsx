@@ -147,7 +147,17 @@ export default function Home() {
           const ok = await fetchAllListings();
           if (ok) return;
         }
-        setListings(hits);
+        const term = q.toLowerCase();
+        const locallyFiltered = Array.isArray(hits)
+          ? hits.filter((item: Listing) => {
+              if (!term) return true;
+              const haystack = `${item.title} ${item.meta || ""} ${item.description || ""} ${
+                item.sellerName || ""
+              }`.toLowerCase();
+              return haystack.includes(term);
+            })
+          : [];
+        setListings(locallyFiltered);
       }
     } catch (err) {
       if (controller.signal.aborted) return;

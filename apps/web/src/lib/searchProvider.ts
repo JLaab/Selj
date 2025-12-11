@@ -171,7 +171,13 @@ const typesenseProvider: SearchProvider = {
         filter_by: filterClauses.join(" && "),
         per_page: 200,
       });
-    let searchRes = await runSearch();
+    let searchRes;
+    try {
+      searchRes = await runSearch();
+    } catch (err) {
+      console.warn("Typesense search fail, falling back to file search", err);
+      return fileSearchProvider.search({ q, category, county, filters, categories, listings });
+    }
 
     // Om indexet är tomt (t.ex. Typesense omstart) och vi har lokala annonser: reindexera snabbt
     const noFilters =

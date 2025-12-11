@@ -102,6 +102,20 @@ export default function Home() {
     const controller = new AbortController();
     searchAbort.current = controller;
 
+    const fetchAllListings = async () => {
+      try {
+        const res = await fetch("/api/listings");
+        if (res.ok) {
+          const all = await res.json();
+          setListings(all);
+          return true;
+        }
+      } catch (e) {
+        console.error("Fallback /api/listings fail", e);
+      }
+      return false;
+    };
+
     const params = new URLSearchParams();
     const q = searchTerm.trim();
     if (q) params.set("q", q);
@@ -123,11 +137,23 @@ export default function Home() {
       if (!res.ok) throw new Error("Sök misslyckades");
       const data = await res.json();
       if (!controller.signal.aborted) {
-        setListings(data.hits ?? data ?? []);
+        const hits = data.hits ?? data ?? [];
+        const isEmptyQuery =
+          !q &&
+          !selectedCategory &&
+          (viewAllCounties || !selectedCounty) &&
+          Object.keys(cleanFilters).length === 0;
+        if (Array.isArray(hits) && hits.length === 0 && isEmptyQuery) {
+          const ok = await fetchAllListings();
+          if (ok) return;
+        }
+        setListings(hits);
       }
     } catch (err) {
       if (controller.signal.aborted) return;
       console.error("Sökfel", err);
+      const ok = await fetchAllListings();
+      if (ok) return;
     } finally {
       if (!controller.signal.aborted) {
         setIsSearching(false);

@@ -75,6 +75,25 @@ Detta är en minimal dokumentation av de Next.js app routes som finns i mock-BFF
 - Body: `{ "id": "listing-id", "status": "active" | "pending" | "rejected" | "expired" }`
 - Uppdaterar status.
 
+## Sök
+- Endpoint: `GET /api/search?q=...&category=...&county=...&filters={...}`
+- Standard: inbyggd filtrering i kod (file-store).
+- Typesense (rekommenderat för prestanda): sätt env och kör Typesense.
+  - Env (`apps/web/.env.local`):
+    ```
+    SEARCH_PROVIDER=typesense
+    TYPESENSE_HOST=localhost
+    TYPESENSE_PORT=8108
+    TYPESENSE_PROTOCOL=http
+    TYPESENSE_API_KEY=devtypesense
+    ```
+  - Docker lokalt:
+    ```
+    docker run -d --name selj-typesense -p 8108:8108 -v /tmp/typesense-data:/data typesense/typesense:0.25.2 --api-key=devtypesense --data-dir=/data --listen-port=8108
+    ```
+  - Vid listing-create/update indexeras posten i Typesense. Sök-resultat parse:ar `raw_listing` tillbaka till `Listing`.
+  - Attributfilter som inte stöds direkt i Typesense filtreras efter sök i minnet.
+
 ## Typer (FilterOption)
 - `select`: `{ "type": "select", "label": "Underkategori", "options": ["Bilar", "MC"], "required": true, "ui": "dropdown" }`
 - `chip`: `{ "type": "chip", "label": "Drivmedel", "options": ["Bensin","Diesel"], "required": false, "ui": "chip" }`

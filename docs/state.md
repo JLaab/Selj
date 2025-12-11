@@ -14,12 +14,12 @@ Senast uppdaterad: (se commit/filändringstid)
 - Detaljvy: säljarinfo (privat/företag), pris, kontaktform, bildgalleri, listvy/rutvy. Attribut från kategori visas per annons.
 - Admin UI: dashboard med nyckeltal, moderering (approve/reject/bulk), kategorilista, skapa annons (kopplad till kategoriregler), sidomeny, växlingsknapp till webbvyn.
 - Kategoribuilder: separata fält för publicering (`createFields`) och sökfilter (`searchFilters`), snabbval och kopiering mellan sektionerna.
-- Datahantering: file-backed mock (`data/db.json`) för listings/kategorier via API-routes. Typer i `src/lib/types.ts` och `packages/types`. Mockdata i `src/lib/mockData.ts` seedar vid första körning.
-- Sökstub: `/api/search` filtrerar listings (text, kategori, län, attribut) och kan ersättas med Typesense senare.
+- Datahantering: file-backed mock (`data/db.json`) för listings/kategorier via API-routes, pluggbar `DataStore` (kan växla till Postgres via env). Typer i `src/lib/types.ts` och `packages/types`. Mockdata i `src/lib/mockData.ts` seedar vid första körning.
+- Sök: inbyggd filtrering + pluggbar `searchProvider`. Typesense-stöd via env (index vid create/update, sök via `/api/search`).
 - Teman/färger: ljus/“selj”-grön, förstärkta kort/badges.
 
 ## Nästa steg (prio)
-1) Riktig DB + sök: ersätt file-backed mock med Postgres (eller Aurora Serverless) och Typesense/Elastic; behåll samma kontrakt som nuvarande `_db`/`search` stub.
+1) Produktions-DB + sök: byt default till Postgres (ev. managed) och kör Typesense-kluster/Elastic med auth + backup; migrations och monitorering.
 2) Media-upload: presigned S3/GCS-stub (max 5 bilder + 1 video) och koppla både web/admin.
 3) Auth/roller: admin-gate nu, sedan riktig auth (NextAuth/Clerk/Supabase) med roll “admin”.
 4) Cache/perf: ISR/edge-cache för listningar, rate limiting, logg/metrics. Förbered för CDN runt media.

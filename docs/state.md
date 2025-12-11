@@ -6,6 +6,7 @@ Senast uppdaterad: (se commit/filändringstid)
 - Webb: snabb marknadsplats (Next.js), län först i mobil, stabil scroll, list/grid, detaljvy med galleri och chat UI.
 - Admin: moderering, kategorier/filter, skapa/hantera annonser, intäkts- och användarinsikter.
 - Backend: BFF/API för listings, kategorier/filter, auth/roller, media-upload, sök (Typesense), messaging/notifications.
+- Beslut (prod-stack): Frontend på Vercel, DB i Supabase (Postgres), sök i Typesense Cloud, media i Cloudflare R2 + CDN. Admin kan flyttas ut senare men samma backend.
 - Splitbar: admin kan flyttas till egen app senare; delad kod/typer/tema.
 
 ## Vad som finns idag
@@ -19,9 +20,9 @@ Senast uppdaterad: (se commit/filändringstid)
 - Teman/färger: ljus/“selj”-grön, förstärkta kort/badges.
 
 ## Nästa steg (prio)
-1) Produktions-DB + sök: byt default till Postgres (ev. managed) och kör Typesense-kluster/Elastic med auth + backup; migrations och monitorering.
-2) Media-upload: presigned S3/GCS-stub (max 5 bilder + 1 video) och koppla både web/admin.
-3) Auth/roller: admin-gate nu, sedan riktig auth (NextAuth/Clerk/Supabase) med roll “admin”.
+1) Supabase + Typesense Cloud: sätt env `DATA_STORE=postgres` och `DATABASE_URL` (Supabase), peka search mot Typesense Cloud (env + schema), reindexera från DB vid deploy. Lägg migrations och backup-plan.
+2) Media via Cloudflare R2: presigned upload-endpoint, lagra URL i DB, max 5 bilder + ev. 1 video. Publikt CDN-hostname.
+3) Auth/roller: admin-gate nu, sedan riktig auth (NextAuth/Clerk/Supabase Auth) med roll “admin”.
 4) Cache/perf: ISR/edge-cache för listningar, rate limiting, logg/metrics. Förbered för CDN runt media.
 5) Stabil schema: versionera kategori/attributschema och lägg migrationsväg för framtida fält.
 

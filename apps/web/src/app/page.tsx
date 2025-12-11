@@ -59,6 +59,16 @@ export default function Home() {
     county: "",
   });
 
+  const [categoriesState, setCategoriesState] = useState<Category[]>([]);
+  const [selectedCounty, setSelectedCounty] = useState<string>("");
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
+  const [currentImageIdx, setCurrentImageIdx] = useState(0);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [showLightbox, setShowLightbox] = useState(false);
+  const unreadCount = 3;
+  const freeMonthsLeft = 2;
+
   const updateField =
     (key: keyof typeof form) =>
     (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -141,15 +151,6 @@ export default function Home() {
     () => Object.values(form).some((v) => v.trim().length > 0),
     [form]
   );
-  const [selectedCounty, setSelectedCounty] = useState<string>("");
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
-  const [currentImageIdx, setCurrentImageIdx] = useState(0);
-  const [touchStartX, setTouchStartX] = useState<number | null>(null);
-  const [showLightbox, setShowLightbox] = useState(false);
-  const unreadCount = 3;
-  const freeMonthsLeft = 2;
-  const [categoriesState, setCategoriesState] = useState<Category[]>([]);
   const categoryLabelLookup = useMemo(
     () => Object.fromEntries(categoriesState.map((c) => [c.value, c.label])),
     [categoriesState]

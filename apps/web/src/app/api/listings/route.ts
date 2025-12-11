@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "../_db";
 import type { Listing, ListingStatus } from "../../../lib/types";
 import { getFieldsForCategory, validateAttributes } from "../../../lib/attributeHelpers";
+import { searchProvider } from "../../../lib/searchProvider";
 
 import { placeholderImage } from "../../../lib/placeholders";
 
@@ -46,7 +47,8 @@ export async function POST(request: Request) {
     sellerWebsite: body.sellerWebsite,
     attributes: body.attributes,
   };
-  db.createListing(listing);
+  await db.createListing(listing);
+  await searchProvider.indexListing(listing);
   return NextResponse.json(listing, { status: 201 });
 }
 
@@ -57,6 +59,12 @@ export async function PUT(request: Request) {
   if (!id || !status) {
     return NextResponse.json({ error: "id and status required" }, { status: 400 });
   }
-  db.updateListingStatus(id, status);
+  await db.updateListingStatus(id, status);
+  // try to update search index if listing exists
+  const listing = (await db.getListings()).find((l) => l.id === id);
+  if (listing) {
+    const updated = { ...listing, status };
+    await searchProvider.indexListing(updated);
+  }
   return NextResponse.json({ ok: true });
 }

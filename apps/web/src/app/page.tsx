@@ -2,7 +2,7 @@
 
 import styles from "./page.module.css";
 import { ThemeToggle } from "../components/theme-toggle";
-import { useEffect, useMemo, useState, type ChangeEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import Image from "next/image";
 import type { Category, Listing } from "../lib/types";
 import { placeholderImage } from "../lib/placeholders";
@@ -40,6 +40,8 @@ export default function Home() {
   const [activePanel, setActivePanel] = useState<
     "browse" | "dashboard" | "messages" | "new" | "favorites"
   >("browse");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
   const [waitlist, setWaitlist] = useState<Set<string>>(new Set());
   const [showReply, setShowReply] = useState(false);
   const [form, setForm] = useState({
@@ -68,18 +70,71 @@ export default function Home() {
   const updateFilterValue = (label: string, value: string) => {
     setFilterValues((prev) => ({ ...prev, [label]: value }));
   };
+  const searchAbort = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const [cats, lst] = await Promise.all([
-        fetch("/api/categories").then((r) => r.json()),
-        fetch("/api/listings").then((r) => r.json()),
-      ]);
+    const fetchCategories = async () => {
+      const cats = await fetch("/api/categories").then((r) => r.json());
       setCategoriesState(cats);
-      setListings(lst);
-      setFilterValues({});
     };
-    fetchData();
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    setFilterValues({});
+  }, [selectedCategory]);
+
+  const performSearch = useCallback(async () => {
+    if (searchAbort.current) {
+      searchAbort.current.abort();
+    }
+    const controller = new AbortController();
+    searchAbort.current = controller;
+
+    const params = new URLSearchParams();
+    const q = searchTerm.trim();
+    if (q) params.set("q", q);
+    if (selectedCategory) params.set("category", selectedCategory);
+    if (selectedCounty) params.set("county", selectedCounty);
+    const cleanFilters: Record<string, string> = {};
+    Object.entries(filterValues).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== "") {
+        cleanFilters[key] = val.toString();
+      }
+    });
+    if (Object.keys(cleanFilters).length) {
+      params.set("filters", JSON.stringify(cleanFilters));
+    }
+
+    try {
+      setIsSearching(true);
+      const res = await fetch(`/api/search?${params.toString()}`, { signal: controller.signal });
+      if (!res.ok) throw new Error("Sök misslyckades");
+      const data = await res.json();
+      if (!controller.signal.aborted) {
+        setListings(data.hits ?? data ?? []);
+      }
+    } catch (err) {
+      if (controller.signal.aborted) return;
+      console.error("Sökfel", err);
+    } finally {
+      if (!controller.signal.aborted) {
+        setIsSearching(false);
+      }
+    }
+  }, [filterValues, searchTerm, selectedCategory, selectedCounty]);
+
+  useEffect(() => {
+    const debounce = setTimeout(() => {
+      performSearch();
+    }, 250);
+    return () => clearTimeout(debounce);
+  }, [performSearch]);
+
+  useEffect(() => {
+    return () => {
+      searchAbort.current?.abort();
+    };
   }, []);
 
   const showPreview = useMemo(
@@ -211,6 +266,8 @@ export default function Home() {
             <input
               className={styles.searchInput}
               placeholder="Sök efter bilar, elektronik, med mera"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
               <select
                 className={styles.categorySelect}
@@ -541,6 +598,8 @@ export default function Home() {
           <input
             className={styles.searchInput}
             placeholder="Sök efter bilar, elektronik, med mera"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
           <select
             className={styles.categorySelect}
@@ -596,7 +655,7 @@ export default function Home() {
                 <h2 className={styles.heading2}>{selectedCounty}</h2>
                 <p className={styles.body}>
                   {sortedListings.length} exempelannonser. Senaste överst när vi kopplar på riktiga
-                  data.
+                  data. {isSearching ? "Söker..." : ""}
                 </p>
               </div>
               <div className={styles.listActions}>

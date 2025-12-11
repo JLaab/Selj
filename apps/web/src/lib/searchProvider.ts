@@ -119,6 +119,16 @@ const listingToDoc = (listing: Listing) => ({
   raw_listing: JSON.stringify(listing),
 });
 
+const bulkIndexListings = async (items: Listing[]) => {
+  if (!typesenseClient || !items.length) return;
+  await ensureTypesenseSchema();
+  const payload = items.map((l) => JSON.stringify(listingToDoc(l))).join("\n");
+  await typesenseClient
+    .collections(TS_COLLECTION)
+    .documents()
+    .import(payload, { action: "upsert" });
+};
+
 const typesenseProvider: SearchProvider = {
   async indexListing(listing) {
     if (!typesenseClient) return;
@@ -154,12 +164,25 @@ const typesenseProvider: SearchProvider = {
     if (county) filterClauses.push(`county:=${county}`);
     if (filters.status) filterClauses.push(`status:=${filters.status}`);
 
-    const searchRes = await typesenseClient.collections(TS_COLLECTION).documents().search({
-      q: query,
-      query_by: "title,meta,description",
-      filter_by: filterClauses.join(" && "),
-      per_page: 200,
-    });
+    const runSearch = async () =>
+      typesenseClient.collections(TS_COLLECTION).documents().search({
+        q: query,
+        query_by: "title,meta,description",
+        filter_by: filterClauses.join(" && "),
+        per_page: 200,
+      });
+    let searchRes = await runSearch();
+
+    // Om indexet är tomt (t.ex. Typesense omstart) och vi har lokala annonser: reindexera snabbt
+    const noFilters =
+      !q &&
+      !category &&
+      !county &&
+      Object.entries(filters || {}).filter(([, v]) => !!v).length === 0;
+    if ((searchRes.found ?? 0) === 0 && listings.length && noFilters) {
+      await bulkIndexListings(listings);
+      searchRes = await runSearch();
+    }
 
     // plocka upp rå-datan och komplettera med attributfilter i minnet (flexibelt för dynamiska fält)
     const allowedFields =

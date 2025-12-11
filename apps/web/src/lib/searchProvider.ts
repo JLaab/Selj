@@ -217,6 +217,11 @@ const typesenseProvider: SearchProvider = {
       return true;
     });
 
+    // Fallback om indexet inte innehåller några träffar (t.ex. om Typesense är tomt eller nystartad)
+    if (filtered.length === 0 && listings.length) {
+      return fileSearchProvider.search({ q, category, county, filters, categories, listings });
+    }
+
     return { hits: filtered, total: filtered.length };
   },
 };

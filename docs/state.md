@@ -11,17 +11,19 @@ Senast uppdaterad: (se commit/filändringstid)
 ## Vad som finns idag
 - Webb UI: länval, list/grid, detaljvy, helskärms-galleri, sortering (senaste/pris), favoritknapp (mock).
 - Formular: skapa annons (webb) med titel, pris, ort/län, kontakt (namn, e-post, telefon, webbplats), kategori, beskrivning, media-hint.
-- Detaljvy: säljarinfo (privat/företag), pris, kontaktform, bildgalleri, listvy/rutvy.
-- Admin UI: dashboard med nyckeltal, moderering (approve/reject/bulk), kategorilista, placeholders för blockerade konton/regler, skapa annons (lägger in i mockstore), sidomeny.
-- Datahantering: enkel in-memory `mockStore` (delad mellan web och admin). Listings kan uppdateras och skapas i admin och syns på webben. Typer i `src/lib/types.ts`. Mockdata i `src/lib/mockData.ts`.
+- Detaljvy: säljarinfo (privat/företag), pris, kontaktform, bildgalleri, listvy/rutvy. Attribut från kategori visas per annons.
+- Admin UI: dashboard med nyckeltal, moderering (approve/reject/bulk), kategorilista, skapa annons (kopplad till kategoriregler), sidomeny, växlingsknapp till webbvyn.
+- Kategoribuilder: separata fält för publicering (`createFields`) och sökfilter (`searchFilters`), snabbval och kopiering mellan sektionerna.
+- Datahantering: file-backed mock (`data/db.json`) för listings/kategorier via API-routes. Typer i `src/lib/types.ts` och `packages/types`. Mockdata i `src/lib/mockData.ts` seedar vid första körning.
+- Sökstub: `/api/search` filtrerar listings (text, kategori, län, attribut) och kan ersättas med Typesense senare.
 - Teman/färger: ljus/“selj”-grön, förstärkta kort/badges.
 
 ## Nästa steg (prio)
-1) API-stub: Next app routes för `/api/listings` (GET/POST/PUT status) och `/api/categories` (GET). Web och admin hämtar via fetch/React Query istället för direkt mockstore. In-memory data kan ligga i en server-fil (t.ex. `src/server/mockDb.ts`).
-2) Validering mot kategoriregler: generera formulärfält/obligatoriska fält baserat på kategori/filterdefinitioner; tillämpa i både web och admin.
-3) Auth/roller (stub → riktig): admin-gate, sedan t.ex. NextAuth/Clerk/Supabase med roll “admin”.
-4) Media-upload: koppla uppladdning (S3-presigned stub), ersätt “bild-URL”-fält med filuppladdning; fallback URL för mock.
-5) Sök/Typesense: koppla frontendfilter till riktig sök när API/BFF finns.
+1) Riktig DB + sök: ersätt file-backed mock med Postgres (eller Aurora Serverless) och Typesense/Elastic; behåll samma kontrakt som nuvarande `_db`/`search` stub.
+2) Media-upload: presigned S3/GCS-stub (max 5 bilder + 1 video) och koppla både web/admin.
+3) Auth/roller: admin-gate nu, sedan riktig auth (NextAuth/Clerk/Supabase) med roll “admin”.
+4) Cache/perf: ISR/edge-cache för listningar, rate limiting, logg/metrics. Förbered för CDN runt media.
+5) Stabil schema: versionera kategori/attributschema och lägg migrationsväg för framtida fält.
 
 ## Teknikkarta
 - Frontend: Next.js 16 (app router), React, CSS modules. Turbopack dev/build.
